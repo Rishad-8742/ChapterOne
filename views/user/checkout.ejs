@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Checkout | ChapterOne</title>
+
+    <link rel="stylesheet" href="/css/checkout.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="/js/checkout.js" defer></script>
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="/user/home" class="logo">
+            <span class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff"
+                     stroke-width="1.8" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M12 6.5C10.3 5.3 8 4.8 4 5v12c4-.2 6.3.3 8 1.5"/>
+                    <path d="M12 6.5c1.7-1.2 4-1.7 8-1.5v12c-4-.2-6.3.3-8 1.5"/>
+                    <path d="M12 6.5v12"/>
+                </svg>
+            </span>
+
+            <span class="logo-text">ChapterOne</span>
+        </a>
+
+        <nav class="navigation">
+            <a href="/user/home" class="nav-link">Home</a>
+            <a href="/user/books" class="nav-link">Books</a>
+
+            <a href="/user/cart" class="nav-link active">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.7">
+                        <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"/>
+                        <circle cx="10" cy="20" r="1"/>
+                        <circle cx="18" cy="20" r="1"/>
+                    </svg>
+                </span>
+                Cart
+            </a>
+
+            <a href="/user/account" class="nav-link nav-icon-link">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.7">
+                        <circle cx="12" cy="8" r="3.2"/>
+                        <path d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"/>
+                    </svg>
+                </span>
+                Account
+            </a>
+
+            <a href="/user/logout" class="nav-link nav-icon-link"
+               aria-label="Logout">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.7">
+                        <path d="M10 5H5v14h5"/>
+                        <path d="M14 8l4 4-4 4"/>
+                        <path d="M8 12h10"/>
+                    </svg>
+                </span>
+            </a>
+        </nav>
+    </header>
+
+    <main class="checkout-container">
+
+        <div class="page-heading">
+            <p class="eyebrow">CHAPTERONE / CHECKOUT</p>
+            <h1>Complete your order</h1>
+            <p>Almost there. Tell us where to deliver your books.</p>
+        </div>
+
+        <div id="checkoutMessage" class="message" role="alert"></div>
+
+        <!-- Single checkout grid -->
+        <div class="checkout-layout">
+
+            <!-- LEFT: SHIPPING AND PAYMENT -->
+            <section class="checkout-card shipping-card">
+
+                <h2>Shipping details</h2>
+
+                <form id="checkoutForm">
+
+                    <div class="form-group saved-address-group">
+                        <label for="savedAddressSelect">
+                            Choose a saved address
+                        </label>
+
+                        <select id="savedAddressSelect" required>
+                            <option value="">Loading saved addresses...</option>
+                        </select>
+
+                        <p id="addressLoadMessage" role="status"></p>
+
+                        <a href="/user/address" id="addAddressLink" hidden>
+                            + Add an address
+                        </a>
+                    </div>
+
+                    <h2 class="payment-heading">Payment method</h2>
+
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod"
+                               value="COD" checked>
+                        <span>
+                            <strong>Cash on Delivery</strong>
+                            <small>Pay when your books arrive.</small>
+                        </span>
+                    </label>
+
+                    
+                    <label class="payment-option">
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="RAZORPAY"
+                            >
+                    <span>
+                    <strong>Online Payment</strong>
+                    <small>Pay securely using Razorpay</small>
+                    </span>
+                    </label>
+
+
+                    <button type="submit" id="placeOrderBtn"
+                            class="place-order-btn">
+                        Place Order
+                    </button>
+
+                    <a href="/user/cart" class="back-link">
+                        ← Return to cart
+                    </a>
+
+                </form>
+            </section>
+
+            <!-- RIGHT: ORDER SUMMARY -->
+            <aside class="checkout-card order-card">
+
+                <h2>Your order</h2>
+
+                <div id="checkoutItems" class="checkout-items">
+                    <p>Loading your books...</p>
+                </div>
+
+                <div class="summary-line">
+                    <span>Subtotal</span>
+                    <span id="checkoutSubtotal">₹0.00</span>
+                </div>
+
+                <div class="summary-line">
+                    <span>Delivery</span>
+                    <span>Free</span>
+                </div>
+
+                <div class="summary-line total-line">
+                    <strong>Total</strong>
+                    <strong id="checkoutTotal">₹0.00</strong>
+                </div>
+
+                <p class="secure-note">
+                    Your order total is calculated using current book prices.
+                </p>
+
+            </aside>
+
+        </div>
+    </main>
+
+</body>
+</html>

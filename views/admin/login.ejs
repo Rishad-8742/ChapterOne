@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/css/adminLogin.css">
+</head>
+<body>
+  <main class="login-page">
+    <form id="adminLoginForm" class="login-card" novalidate>
+
+      <div class="login-brand">
+        <span class="brand-mark">A</span>
+        <h1>Admin Panel</h1>
+        <p>Sign in to manage your store</p>
+      </div>
+
+      <p id="errorMsg" class="error" role="alert"></p>
+
+      <div class="field">
+        <label for="username">Username or email</label>
+        <input type="text" id="username" autocomplete="username" placeholder="Enter your username" required>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password" placeholder="Enter your password" required>
+      </div>
+
+      <button type="submit" id="loginBtn">Sign in</button>
+    </form>
+  </main>
+
+  <script src="/js/adminLogin.js"></script>
+</body>
+</html>

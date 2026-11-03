@@ -1,0 +1,132 @@
+<%- include('partials/top', { title: 'Orders', active: 'orders' }) %>
+
+<link rel="stylesheet" href="/css/admin-orders.css">
+<script src="/js/adminOrders.js" defer></script>
+
+<section class="orders-page">
+
+    <div class="orders-heading">
+        <div>
+            <h2>Order Management</h2>
+            <p>Track purchases and manage customer deliveries.</p>
+        </div>
+
+        <button type="button" id="refreshOrders" class="refresh-btn">
+            Refresh Orders
+        </button>
+    </div>
+
+    <div class="order-stats">
+        <div class="stat-card">
+            <span>Total Orders</span>
+            <h3 id="totalOrders">0</h3>
+        </div>
+
+        <div class="stat-card">
+            <span>Pending</span>
+            <h3 id="pendingOrders">0</h3>
+        </div>
+
+        <div class="stat-card">
+            <span>Shipped</span>
+            <h3 id="shippedOrders">0</h3>
+        </div>
+
+        <div class="stat-card">
+            <span>Delivered</span>
+            <h3 id="deliveredOrders">0</h3>
+        </div>
+    </div>
+
+    <p id="pageMessage" class="message"
+       role="status" aria-live="polite"></p>
+
+    <section class="orders-card">
+
+        <div class="orders-toolbar">
+            <input
+                type="search"
+                id="orderSearch"
+                placeholder="Search order ID or customer..."
+                aria-label="Search orders">
+
+            <select id="statusFilter" aria-label="Filter orders by status">
+                <option value="ALL">All Statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="SHIPPED">Shipped</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="CANCELLED">Cancelled</option>
+            </select>
+        </div>
+
+        <div class="orders-table-wrapper">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="ordersBody">
+                    <tr>
+                        <td colspan="7" class="table-message">
+                            Loading orders...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+    <!-- Order Details -->
+    <section id="orderDetails" class="order-details" hidden>
+
+        <div class="details-header">
+            <div>
+                <h2>Order Details</h2>
+                <p id="detailsTitle"></p>
+            </div>
+
+            <button type="button" id="closeDetails" class="close-btn">
+                Close
+            </button>
+        </div>
+
+        <div id="detailsContent"></div>
+
+        <div class="status-management">
+            <h3>Update Order Status</h3>
+
+            <div class="status-controls">
+                <select id="newOrderStatus">
+                    <option value="PENDING">Pending</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+
+                <button type="button" id="updateStatusBtn" class="update-btn">
+                    Update Status
+                </button>
+            </div>
+
+            <p class="status-help">
+                Order status changes are validated by the server.
+            </p>
+        </div>
+
+    </section>
+
+</section>
+
+
+<%- include('partials/bottom') %>

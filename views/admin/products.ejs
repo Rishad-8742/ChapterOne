@@ -1,0 +1,219 @@
+<%- include('partials/top', { title: 'Products', active: 'products' }) %>
+
+<section class="panel">
+  <div class="panel-header toolbar">
+    <div class="toolbar-left">
+      <input type="text" id="searchInput" class="form-input" placeholder="Search title or author">
+      <select id="stockFilter" class="form-input">
+        <option value="all">All stock</option>
+        <option value="in">In stock</option>
+        <option value="out">Out of stock</option>
+      </select>
+    </div>
+    <button type="button" class="btn-primary" id="openAddBtn"> <a href="/admin/products/add" class="btn-primary">
+    Add Book +
+</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>language</th>
+          <th>Genre</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="productsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <span id="totalInfo" class="muted-text"></span>
+    <div class="pagination">
+      <button type="button" id="prevBtn" class="btn-light btn-sm">Previous</button>
+      <span id="pageInfo"></span>
+      <button type="button" id="nextBtn" class="btn-light btn-sm">Next</button>
+    </div>
+  </div>
+</section>
+
+<!-- Add / Edit modal -->
+
+<!-- Add / Edit modal -->
+<div id="productModal" class="modal">
+    <div class="panel product-modal-panel">
+
+        <h2 id="modalTitle">Add Book</h2>
+
+        <form id="productForm" novalidate>
+
+            <input type="hidden" id="productId">
+
+            <label for="title">Title</label>
+            <input
+                type="text"
+                id="title"
+                class="form-input"
+                required
+            >
+
+            <label for="author">Author</label>
+            <input
+                type="text"
+                id="author"
+                class="form-input"
+                required
+            >
+
+            <label for="language">Language</label>
+            <select id="language" class="form-input" required>
+                <option value="">Select Language</option>
+                <option value="English">English</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="Hindi">Hindi</option>
+            </select>
+
+            <label for="genre">Genre</label>
+            <select id="genre" class="form-input" required>
+                <option value="">Select Genre</option>
+                <option value="Fiction">Fiction</option>
+                <option value="Mystery">Mystery</option>
+                <option value="Romance">Romance</option>
+                <option value="Science Fiction">Science Fiction</option>
+                <option value="Fantasy">Fantasy</option>
+                <option value="Self Help">Self Help</option>
+            </select>
+
+            <label for="price">Price</label>
+            <input
+                type="number"
+                id="price"
+                class="form-input"
+                min="0"
+                step="0.01"
+                required
+            >
+
+            <label for="stock">Stock</label>
+            <input
+                type="number"
+                id="stock"
+                class="form-input"
+                min="0"
+                step="1"
+                required
+            >
+
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                class="form-input"
+                rows="3"
+            ></textarea>
+
+     
+            <!-- FRONT COVER -->
+            <div class="image-field full-width">
+                <label for="image">Front Cover</label>
+
+                <div class="cover-upload-box">
+                    <div class="cover-preview-container">
+                        <img
+                            id="imagePreview"
+                            class="cover-preview"
+                            src=""
+                            alt="Front cover preview"
+                            hidden
+                        >
+                      
+                    </div>
+
+                    <div class="cover-upload-controls">
+                        <label for="image" class="choose-image-btn">
+                            Choose Front Cover
+                        </label>
+
+                        <input
+                            type="file"
+                            id="image"
+                            name="image"
+                            accept="image/jpeg,image/png,image/webp"
+                            hidden
+                        >
+
+                       
+                    </div>
+                </div>
+            </div>
+
+            <!-- BACK COVER -->
+            <div class="image-field full-width">
+                <label for="image2">Back Cover</label>
+
+                <div class="cover-upload-box">
+                    <div class="cover-preview-container">
+                        <img
+                            id="image2Preview"
+                            class="cover-preview"
+                            src=""
+                            alt="Back cover preview"
+                            hidden
+                        >
+                       
+                    </div>
+
+                    <div class="cover-upload-controls">
+                        <label for="image2" class="choose-image-btn">
+                            Choose Back Cover
+                        </label>
+
+                        <input
+                            type="file"
+                            id="image2"
+                            name="image2"
+                            accept="image/jpeg,image/png,image/webp"
+                            hidden
+                        >
+
+                       
+                    </div>
+                </div>
+            </div>
+            <p
+                id="formError"
+                class="full-width"
+                style="color:#c0392b; min-height:1.2em;"
+            ></p>
+
+            <div class="full-width modal-actions">
+                <button
+                    type="button"
+                    id="cancelBtn"
+                    class="btn-light"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    id="saveBtn"
+                    class="btn-primary"
+                >
+                    Save
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="/js/products.js"></script>
+
+<%- include('partials/bottom') %>

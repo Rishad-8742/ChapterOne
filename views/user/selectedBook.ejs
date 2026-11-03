@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Book Details | CHAPTERONE</title>
+
+    <link rel="stylesheet" href="/css/selectedBook.css">
+    <script src="/js/selectedBook.js" defer></script>
+</head>
+
+<body data-book-id="<%= bookId %>">
+
+    <header class="navbar">
+
+        <a href="/user/home" class="logo">
+
+            <span class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 6.5C10.3 5.3 8 4.8 4 5v12c4-.2 6.3.3 8 1.5"/>
+                    <path d="M12 6.5c1.7-1.2 4-1.7 8-1.5v12c-4-.2-6.3.3-8 1.5"/>
+                    <path d="M12 6.5v12"/>
+                </svg>
+            </span>
+
+            <span class="logo-text">ChapterOne</span>
+
+        </a>
+
+
+        <nav class="navigation">
+
+            <a
+                href="/user/home"
+                class="nav-link "
+            >
+                Home
+            </a>
+
+            <a
+                href="/user/books"
+                class="nav-link active"
+            >
+                Books
+            </a>
+
+            <a
+                href="/user/cart"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path
+                            d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"
+                        />
+
+                        <circle
+                            cx="10"
+                            cy="20"
+                            r="1"
+                        />
+
+                        <circle
+                            cx="18"
+                            cy="20"
+                            r="1"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Cart
+
+           
+
+            </a>
+
+
+            <a
+                href="/user/account"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <circle
+                            cx="12"
+                            cy="8"
+                            r="3.2"
+                        />
+
+                        <path
+                            d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Account
+
+            </a>
+
+
+            <a
+                href="/user/logout"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path d="M10 5H5v14h5" />
+
+                        <path d="M14 8l4 4-4 4" />
+
+                        <path d="M8 12h10" />
+
+                    </svg>
+
+              
+            </a>
+
+        </nav>
+
+</header>
+
+<main class="page-container">
+
+    <div class="breadcrumb">
+        <a href="/user/books">BOOKS</a>
+        <span>/</span>
+        <span id="breadcrumbGenre">LOADING</span>
+        <span>/</span>
+        <span id="breadcrumbTitle">BOOK DETAILS</span>
+    </div>
+
+    <section class="product-layout">
+
+       
+<div class="image-section">
+
+    <div class="image-card">
+        <img
+            id="bookImage"
+            src=""
+            alt="Book front cover"
+        >
+    </div>
+
+    <div class="cover-thumbnails">
+
+        <button
+            type="button"
+            id="frontThumb"
+            class="cover-thumb active"
+            aria-label="Show front cover"
+        >
+            <img
+                id="frontThumbImage"
+                src=""
+                alt="Front cover thumbnail"
+            >
+        </button>
+
+        <button
+            type="button"
+            id="backThumb"
+            class="cover-thumb"
+            aria-label="Show back cover"
+            hidden
+        >
+            <img
+                id="backThumbImage"
+                src=""
+                alt="Back cover thumbnail"
+            >
+        </button>
+
+    </div>
+
+    <p class="stock-note" id="stockNote">
+        Checking availability...
+    </p>
+
+</div>
+
+
+           
+        
+
+        <div class="details-section">
+
+            <p class="genre" id="bookGenre">Loading...</p>
+
+            <h1 id="bookTitle">Loading book details...</h1>
+
+            <p class="author">
+                By <span id="bookAuthor">—</span>
+            </p>
+
+            <div class="rating">
+                <span class="stars">★★★★★</span>
+                <span>Reader favourite</span>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="price-row">
+                <span class="price" id="bookPrice">₹0.00</span>
+                <span class="tax-note">PRICE IN INR</span>
+            </div>
+
+            <p class="description" id="bookDescription">
+                Loading description...
+            </p>
+
+            <div class="separator"></div>
+
+            <div class="purchase-row">
+
+                <div class="quantity-control">
+                    <button type="button" id="decreaseQty"
+                        aria-label="Decrease quantity">−</button>
+
+                    <span id="quantity">1</span>
+
+                    <button type="button" id="increaseQty"
+                        aria-label="Increase quantity">+</button>
+                </div>
+
+                <button type="button" id="addToCartBtn"
+                    class="add-cart-btn" disabled>
+                    Add to Cart
+                </button>
+
+            </div>
+
+            <p id="message" role="status" aria-live="polite"></p>
+
+            <div class="separator"></div>
+
+            <div class="benefits">
+                <span>✓ Carefully selected books</span>
+                <span>◇ Quality reading</span>
+                <span>↻ Easy order tracking</span>
+            </div>
+
+        </div>
+
+    </section>
+
+    
+<!-- RELATED BOOKS -->
+<section class="related-books-section">
+    <div class="related-books-heading">
+        <p class="section-label">MORE TO EXPLORE</p>
+        <h2>You May Also Like</h2>
+        <p>Discover more books from the same genre.</p>
+    </div>
+
+    <div id="relatedBooksContainer" class="related-books-grid">
+        <p>Finding books for you...</p>
+    </div>
+</section>
+
+</main>
+
+
+</body> 
+</html>

@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders | ChapterOne</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/account.css">
+    <link rel="stylesheet" href="/css/orders.css">
+    <script src="/js/orders.js" defer></script>
+</head>
+<body>
+
+
+   
+    <!-- ================= NAVBAR ================= -->
+
+    <header class="navbar">
+
+
+        <!-- LOGO -->
+
+        <a
+            href="/user/home"
+            class="logo"
+        >
+
+            <span class="logo-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+
+                    <path
+                        d="M12 6.5C10.3 5.3 8 4.8 4 5v12c4-.2 6.3.3 8 1.5"
+                    />
+
+                    <path
+                        d="M12 6.5c1.7-1.2 4-1.7 8-1.5v12c-4-.2-6.3.3-8 1.5"
+                    />
+
+                    <path
+                        d="M12 6.5v12"
+                    />
+
+                </svg>
+
+            </span>
+
+
+            <span class="logo-text">
+                ChapterOne
+            </span>
+
+        </a>
+
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="navigation">
+
+
+            <!-- HOME -->
+
+            <a
+                href="/user/home"
+                class="nav-link"
+            >
+                Home
+            </a>
+
+
+            <!-- BOOKS -->
+
+            <a
+                href="/user/books"
+               class="nav-link"
+            >
+                Books
+            </a>
+
+
+            <!-- CART -->
+
+            <a
+                href="/user/cart"
+                 class="nav-link "
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path
+                            d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"
+                        />
+
+                        <circle
+                            cx="10"
+                            cy="20"
+                            r="1"
+                        />
+
+                        <circle
+                            cx="18"
+                            cy="20"
+                            r="1"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Cart
+
+          
+
+            </a>
+
+
+            <!-- ACCOUNT -->
+
+            <a
+                href="/user/account"
+                class="nav-link active"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <circle
+                            cx="12"
+                            cy="8"
+                            r="3.2"
+                        />
+
+                        <path
+                            d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Account
+
+            </a>
+
+
+            <!-- LOGOUT -->
+
+            <a
+                href="/user/logout"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path
+                            d="M10 5H5v14h5"
+                        />
+
+                        <path
+                            d="M14 8l4 4-4 4"
+                        />
+
+                        <path
+                            d="M8 12h10"
+                        />
+
+                    </svg>
+
+                </span>
+
+               
+
+            </a>
+
+        </nav>
+
+    </header>
+
+
+<main class="account-layout">
+
+    <aside class="account-sidebar">
+        <p class="sidebar-label">ACCOUNT DASHBOARD</p>
+        <h2>My Account</h2>
+
+        <nav class="account-menu">
+            <a href="/user/account" class="menu-item">
+                <span>♙</span> Profile
+            </a>
+            <a href="/user/address" class="menu-item">
+                <span>⌂</span> Address
+            </a>
+            <a href="/user/orders" class="menu-item active">
+                <span>▤</span> My Orders
+            </a>
+            <a href="/user/logout" class="menu-item logout-link">
+                <span>⇥</span> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <section class="content-card orders-content">
+        <div class="card-heading">
+            <h2>My Orders</h2>
+            <p>View your purchases and track your deliveries.</p>
+        </div>
+
+        <div class="order-filters">
+            <button type="button" class="filter-btn active" data-status="all">All Orders</button>
+        </div>
+
+        <p id="ordersMessage" class="account-message" role="status"></p>
+
+        <div id="ordersList">
+            <p class="empty-state">Loading your orders...</p>
+        </div>
+    </section>
+
+</main>
+
+<footer class="account-footer">
+    <p class="footer-quote">“Stories worth reading. Ideas worth discovering.”</p>
+    <p class="copyright">© 2026 ChapterOne. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

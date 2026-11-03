@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Account</title>
+
+    <link rel="stylesheet" href="/css/signup.css">
+</head>
+
+<body>
+
+    <div class="signup-card">
+
+        <div class="brand">
+            CHAPTERONE
+        </div>
+
+        <h1>Create Your Account</h1>
+
+        <p class="subtitle">
+            Join our library and start your reading journey.
+        </p>
+
+
+        <!-- Google Signup -->
+
+        <a href="/auth/google/signup" class="google-btn">
+
+            <span class="google-icon">G</span>
+
+            <span>Continue with Google</span>
+
+        </a>
+
+
+        <!-- Divider -->
+
+        <div class="divider">
+
+            <span>OR SIGN UP WITH EMAIL</span>
+
+        </div>
+
+
+        <!-- Signup Form -->
+
+       <form id="signupForm" novalidate>
+
+    <div class="form-group">
+        <label for="userName">FULL NAME</label>
+
+        <input
+            type="text"
+            id="userName"
+            name="userName"
+            placeholder="Reader Name"
+            required
+        >
+
+        <div id="userNameError" class="field-error"></div>
+    </div>
+
+
+    <div class="form-group">
+        <label for="userEmail">EMAIL ADDRESS</label>
+
+        <input
+            type="email"
+            id="userEmail"
+            name="userEmail"
+            placeholder="reader@ChapterOne.com"
+            required
+        >
+
+        <div id="userEmailError" class="field-error"></div>
+
+    <div class="form-group">
+        <label for="userPassword">PASSWORD</label>
+
+        <input
+            type="password"
+            id="userPassword"
+            name="userPassword"
+            placeholder="Create a password"
+            required
+        >
+
+        <div id="userPasswordError" class="field-error"></div>
+    </div>
+
+
+    <div class="form-group">
+        <label for="confirmPassword">CONFIRM PASSWORD</label>
+
+        <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder="Confirm your password"
+            required
+        >
+
+        <div id="confirmPasswordError" class="field-error"></div>
+    </div>
+
+
+    <button type="submit" class="signup-btn">
+        Create Account →
+    </button>
+
+</form>
+
+
+        <!-- Login -->
+
+        <div class="login-section">
+
+            Already have an account?
+
+            <a href="/user/login">
+                Login
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Signup JavaScript -->
+
+    <script src="/js/signup.js" defer></script>
+
+</body>
+
+</html>

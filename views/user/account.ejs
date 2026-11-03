@@ -1,0 +1,405 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Account | ChapterOne</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/account.css">
+    <script src="/js/account.js" defer></script>
+</head>
+
+<body>
+
+   
+    <!-- ================= NAVBAR ================= -->
+
+    <header class="navbar">
+
+
+        <!-- LOGO -->
+
+        <a
+            href="/user/home"
+            class="logo"
+        >
+
+            <span class="logo-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+
+                    <path
+                        d="M12 6.5C10.3 5.3 8 4.8 4 5v12c4-.2 6.3.3 8 1.5"
+                    />
+
+                    <path
+                        d="M12 6.5c1.7-1.2 4-1.7 8-1.5v12c-4-.2-6.3.3-8 1.5"
+                    />
+
+                    <path
+                        d="M12 6.5v12"
+                    />
+
+                </svg>
+
+            </span>
+
+
+            <span class="logo-text">
+                ChapterOne
+            </span>
+
+        </a>
+
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="navigation">
+
+
+            <!-- HOME -->
+
+            <a
+                href="/user/home"
+                class="nav-link"
+            >
+                Home
+            </a>
+
+
+            <!-- BOOKS -->
+
+            <a
+                href="/user/books"
+               class="nav-link"
+            >
+                Books
+            </a>
+
+
+            <!-- CART -->
+
+            <a
+                href="/user/cart"
+                 class="nav-link "
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path
+                            d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"
+                        />
+
+                        <circle
+                            cx="10"
+                            cy="20"
+                            r="1"
+                        />
+
+                        <circle
+                            cx="18"
+                            cy="20"
+                            r="1"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Cart
+
+          
+
+            </a>
+
+
+            <!-- ACCOUNT -->
+
+            <a
+                href="/user/account"
+                class="nav-link active"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <circle
+                            cx="12"
+                            cy="8"
+                            r="3.2"
+                        />
+
+                        <path
+                            d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Account
+
+            </a>
+
+
+            <!-- LOGOUT -->
+
+            <a
+                href="/user/logout"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path
+                            d="M10 5H5v14h5"
+                        />
+
+                        <path
+                            d="M14 8l4 4-4 4"
+                        />
+
+                        <path
+                            d="M8 12h10"
+                        />
+
+                    </svg>
+
+                </span>
+
+               
+
+            </a>
+
+        </nav>
+
+    </header>
+
+<!-- ACCOUNT PAGE -->
+<main class="account-layout">
+
+    <aside class="account-sidebar">
+        <p class="sidebar-label">ACCOUNT DASHBOARD</p>
+        <h2>My Account</h2>
+
+        <nav class="account-menu">
+            <button type="button" class="menu-item active"
+                    data-section="profileSection">
+                <span>♙</span> Profile
+            </button>
+
+         <a href="/user/address" class="menu-item">
+    <span>⌂</span> Address
+</a>
+
+<a href="/user/orders" class="menu-item">
+    <span>▤</span> My Orders
+</a>
+
+            <a href="/user/logout" class="menu-item logout-link">
+                <span>⇥</span> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <div class="account-content">
+        <p id="accountMessage" class="account-message" role="status"></p>
+
+        <!-- PROFILE SECTION -->
+        <section class="content-card account-section"
+                 id="profileSection">
+
+            <div class="card-heading">
+                <h2>Profile</h2>
+                <p>Manage your personal account information.</p>
+            </div>
+
+            <form id="profileForm">
+                <div class="profile-grid">
+
+                    <div class="form-group">
+                        <label for="userName">FULL NAME</label>
+                        <input type="text" id="userName" name="userName"
+                               required minlength="2" maxlength="40">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userEmail">EMAIL ADDRESS</label>
+                        <input type="email" id="userEmail" name="userEmail"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">PHONE NUMBER</label>
+                        <input type="tel" id="phone" name="phone"
+                               maxlength="10" inputmode="numeric"
+                               placeholder="Enter phone number">
+                    </div>
+
+                   
+
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" id="saveProfileBtn">
+                        ✓ &nbsp; Save Changes
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ADDRESS SECTION -->
+        <section class="content-card account-section"
+                 id="addressSection" hidden>
+
+            <div class="card-heading">
+                <h2>My Addresses</h2>
+                <p>Manage your delivery information.</p>
+            </div>
+
+            <div id="addressList">
+                <p class="empty-state">Loading your addresses...</p>
+            </div>
+
+            <button type="button" id="toggleAddressForm"
+                    class="secondary-button">
+                + Add New Address
+            </button>
+
+            <form id="addressForm" hidden>
+                <h3 id="addressFormTitle">Add Delivery Address</h3>
+
+                <input type="hidden" id="addressId">
+
+                <div class="profile-grid">
+                    <div class="form-group">
+                        <label for="addressLabel">ADDRESS TYPE</label>
+                        <select id="addressLabel" required>
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addressFullName">RECIPIENT NAME</label>
+                        <input id="addressFullName" required
+                               minlength="2" maxlength="60">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addressPhone">PHONE NUMBER</label>
+                        <input id="addressPhone" type="tel"
+                               maxlength="10" inputmode="numeric" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addressCity">CITY</label>
+                        <input id="addressCity" required
+                               minlength="2" maxlength="60">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addressPincode">PIN CODE</label>
+                        <input id="addressPincode" maxlength="6"
+                               inputmode="numeric" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="addressText">FULL ADDRESS</label>
+                        <textarea id="addressText" rows="3"
+                                  minlength="10" maxlength="250" required
+                                  placeholder="House name, street, area..."></textarea>
+                    </div>
+                </div>
+
+                <label class="default-option">
+                    <input type="checkbox" id="addressDefault">
+                    Set as default address
+                </label>
+
+                <button type="submit" id="saveAddressBtn">
+                    Save Address
+                </button>
+
+                <button type="button" id="cancelAddressForm"
+                        class="secondary-button">
+                    Cancel
+                </button>
+            </form>
+        </section>
+
+        <!-- ORDERS SECTION -->
+        <section class="content-card account-section"
+                 id="ordersSection" hidden>
+
+            <div class="card-heading">
+                <h2>My Orders</h2>
+                <p>View your purchases and track your deliveries.</p>
+            </div>
+
+            <div id="ordersList">
+                <p class="empty-state">
+                    Your order history will appear here when connected
+                    to your orders API.
+                </p>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="account-footer">
+    <p class="footer-quote">
+        “Stories worth reading. Ideas worth discovering.”
+    </p>
+
+    <div class="footer-links">
+        <span>ChapterOne</span>
+        <span>•</span>
+        <span>Books for every chapter of life</span>
+    </div>
+
+    <p class="copyright">
+        © 2026 ChapterOne. All rights reserved.
+    </p>
+</footer>
+
+</body>
+</html>

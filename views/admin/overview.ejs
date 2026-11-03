@@ -1,0 +1,71 @@
+
+<%- include('partials/top', { title: 'Overview', active: 'overview' }) %>
+
+<link rel="stylesheet" href="/css/adminAnalytics.css">
+
+<div class="analytics-dashboard">
+
+    <header class="dashboard-header">
+        <div>
+            <p class="eyebrow">CHAPTERONE / ADMIN</p>
+            <h2>Analytics Overview</h2>
+            <p class="subtitle">
+                Monitor revenue, book sales and order performance.
+            </p>
+        </div>
+
+        <button id="refreshAnalytics" type="button">
+            Refresh data
+        </button>
+    </header>
+
+    <p id="analyticsMessage" role="status" aria-live="polite">
+        Loading analytics...
+    </p>
+
+    <section class="chart-grid">
+
+        <article class="chart-card">
+            <h3>1. Revenue Timeline</h3>
+            <p>Collected revenue · Last 7 days</p>
+            <div class="chart-container">
+                <canvas id="revenueChart"
+                    aria-label="Daily revenue line chart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <h3>2. Sales by Genre</h3>
+            <p>Copies sold by genre</p>
+            <div class="chart-container">
+                <canvas id="genreChart"
+                    aria-label="Sales by genre doughnut chart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <h3>3. Top Performing Books</h3>
+            <p>Top 5 books by copies sold</p>
+            <div class="chart-container">
+                <canvas id="topBooksChart"
+                    aria-label="Top five books bar chart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <h3>4. Order Status Distribution</h3>
+            <p>Pending, shipped and delivered</p>
+            <div class="chart-container">
+                <canvas id="statusChart"
+                    aria-label="Order status polar area chart"></canvas>
+            </div>
+        </article>
+
+    </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/js/adminAnalytics.js" defer></script>
+
+<%- include('partials/bottom') %>

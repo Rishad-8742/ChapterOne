@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ChapterOne | Books</title>
+
+
+    <!-- GOOGLE FONTS -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- BOOK CSS -->
+
+    <link
+        rel="stylesheet"
+        href="/css/book.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- ================= NAVBAR ================= -->
+
+    <header class="navbar">
+
+
+        <!-- LOGO -->
+
+        <a
+            href="/user/home"
+            class="logo"
+        >
+
+            <span class="logo-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+
+                    <path
+                        d="M12 6.5C10.3 5.3 8 4.8 4 5v12c4-.2 6.3.3 8 1.5"
+                    />
+
+                    <path
+                        d="M12 6.5c1.7-1.2 4-1.7 8-1.5v12c-4-.2-6.3.3-8 1.5"
+                    />
+
+                    <path
+                        d="M12 6.5v12"
+                    />
+
+                </svg>
+
+            </span>
+
+
+            <span class="logo-text">
+                ChapterOne
+            </span>
+
+        </a>
+
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="navigation">
+
+
+            <!-- HOME -->
+
+            <a
+                href="/user/home"
+                class="nav-link"
+            >
+                Home
+            </a>
+
+
+            <!-- BOOKS -->
+
+            <a
+                href="/user/books"
+                class="nav-link active"
+            >
+                Books
+            </a>
+
+
+            <!-- CART -->
+
+            <a
+                href="/user/cart"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path
+                            d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"
+                        />
+
+                        <circle
+                            cx="10"
+                            cy="20"
+                            r="1"
+                        />
+
+                        <circle
+                            cx="18"
+                            cy="20"
+                            r="1"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Cart
+
+          
+
+            </a>
+
+
+            <!-- ACCOUNT -->
+
+            <a
+                href="/user/account"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <circle
+                            cx="12"
+                            cy="8"
+                            r="3.2"
+                        />
+
+                        <path
+                            d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"
+                        />
+
+                    </svg>
+
+                </span>
+
+                Account
+
+            </a>
+
+
+            <!-- LOGOUT -->
+
+            <a
+                href="/user/logout"
+                class="nav-link nav-icon-link"
+            >
+
+                <span class="nav-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    >
+
+                        <path
+                            d="M10 5H5v14h5"
+                        />
+
+                        <path
+                            d="M14 8l4 4-4 4"
+                        />
+
+                        <path
+                            d="M8 12h10"
+                        />
+
+                    </svg>
+
+                </span>
+
+               
+
+            </a>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- ================= BOOK PAGE ================= -->
+
+    <main class="books-page">
+
+
+        <!-- PAGE INTRO -->
+
+        <section class="books-header">
+
+            <p class="section-label">
+                THE CHAPTERONE COLLECTION
+            </p>
+
+            <h1>
+                Find Your Next Chapter
+            </h1>
+
+            <p class="books-description">
+                Explore stories, ideas, and worlds waiting to be discovered.
+            </p>
+
+        </section>
+
+
+
+        <!-- ================= SEARCH & FILTER ================= -->
+
+        
+
+        <section class="book-controls">
+
+
+            <!-- SEARCH -->
+
+            <div class="search-box">
+
+                <svg
+                    class="search-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                >
+
+                    <circle
+                        cx="11"
+                        cy="11"
+                        r="7"
+                    />
+
+                    <path
+                        d="m20 20-4-4"
+                    />
+
+                </svg>
+
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search by title or author..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+
+            <!-- GENRE -->
+
+            <select
+                id="genreFilter"
+                class="form-input"
+            >
+
+                <option value="">
+                    All Genres
+                </option>
+
+                <option value="Fiction">
+                    Fiction
+                </option>
+
+                <option value="Mystery">
+                    Mystery 
+                </option>
+
+                <option value="Romance">
+                    Romance
+                </option>
+
+                <option value="Science Fiction">
+                    Science Fiction
+                </option>
+
+                <option value="Fantasy">
+                    Fantasy
+                </option>
+
+                <option value="Self Help">
+                    Self Help
+                </option>
+
+            </select>
+
+
+
+            <!-- LANGUAGE -->
+
+            <select
+                id="languageFilter"
+                class="form-input"
+            >
+
+                <option value="">
+                    All Languages
+                </option>
+
+                <option value="English">
+                    English
+                </option>
+
+                <option value="Malayalam">
+                    Malayalam
+                </option>
+
+                <option value="Hindi">
+                    Hindi
+                </option>
+
+            </select>
+
+
+        </section>
+
+<div class="books-toolbar">
+    <div class="sort-control">
+        <label for="newest">Sort by</label>
+        <select id="newest">
+            <option value="">New Collection</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="az">A–Z</option>
+        </select>
+    </div>
+
+    <div class="price-filter">
+        <div class="price-heading">
+            <label for="priceRange">Price Range</label>
+            <span id="priceValue">₹1000</span>
+        </div>
+
+        <div class="price-labels">
+            <span>₹0</span>
+            <span>₹1000</span>
+        </div>
+
+        <input
+            type="range"
+            id="priceRange"
+            min="0"
+            max="1000"
+            step="50"
+            value="1000"
+        >
+    </div>
+</div>
+
+
+        <!-- ================= RESULT INFO ================= -->
+
+        <section class="book-result">
+
+            <p id="bookCount">
+                Loading books...
+            </p>
+
+        </section>
+
+
+
+        <!-- ================= BOOK GRID ================= -->
+
+        <section class="books-section">
+
+
+            <!-- LOADING -->
+
+            <div
+                id="loading"
+                class="loading"
+            >
+
+                <div class="loading-spinner"></div>
+
+                <p>
+                    Discovering books...
+                </p>
+
+            </div>
+
+
+
+            <!-- BOOK CONTAINER -->
+
+            <div
+                id="bookContainer"
+                class="book-grid"
+            >
+
+            </div>
+
+
+
+            <!-- NO BOOKS -->
+
+            <div
+                id="noBooks"
+                class="no-books"
+                style="display: none;"
+            >
+
+                <div class="no-books-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                    >
+
+                        <path
+                            d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"
+                        />
+
+                        <path
+                            d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"
+                        />
+
+                    </svg>
+
+                </div>
+
+                <h2>
+                    No Books Found
+                </h2>
+
+                <p>
+                    Try another search or choose a different genre or language.
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer class="footer">
+
+        <div class="footer-content">
+
+
+            <div class="footer-brand">
+
+                <h2>
+                    ChapterOne
+                </h2>
+
+                <p>
+                    Every chapter begins with a book.
+                </p>
+
+            </div>
+
+
+
+            <div class="footer-links">
+
+                <h3>
+                    Explore
+                </h3>
+
+                <a href="/user/home">
+                    Home
+                </a>
+
+                <a href="/user/books">
+                    Books
+                </a>
+
+            </div>
+
+
+
+            <div class="footer-links">
+
+                <h3>
+                    Account
+                </h3>
+
+                <a href="/user/account">
+                    My Account
+                </a>
+
+                <a href="/user/cart">
+                    Cart
+                </a>
+
+                <a href="/user/logout">
+                    Logout
+                </a>
+
+            </div>
+
+
+        </div>
+
+
+
+        <div class="footer-bottom">
+
+            <p>
+                © 2026 ChapterOne. All rights reserved.
+            </p>
+
+        </div>
+
+    </footer>
+
+
+
+    <!-- BOOK JAVASCRIPT -->
+
+    <script src="/js/book.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+<%- include('partials/top', { title: 'Dashboard Home', active: 'dashboard' }) %>
+
+<section class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Total Users</span>
+      <strong class="stat-value"><%= stats.totalUsers %></strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Active Users</span>
+      <strong class="stat-value"><%= stats.totalUsers - stats.blockedUsers %></strong>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Blocked Users</span>
+      <strong class="stat-value"><%= stats.blockedUsers %></strong>
+    </div>
+  </div>
+
+ 
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Recent Signups</h2>
+    <a href="/admin/users" class="panel-link">View all</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (recentUsers.length === 0) { %>
+          <tr><td colspan="3" class="empty">No users yet</td></tr>
+        <% } %>
+        <% recentUsers.forEach(user => { %>
+          <tr>
+            <td><%= user.userName %></td>
+            <td><%= user.userEmail %></td>
+            <td>
+              <span class="badge <%= user.isBlocked ? 'blocked' : 'active' %>">
+                <%= user.isBlocked ? 'Blocked' : 'Active' %>
+              </span>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="quick-links">
+  <a href="/admin/users" class="link-card">
+    <h3>User Management</h3>
+    <p>View, search and block users</p>
+  </a>
+  <a href="/admin/products" class="link-card">
+    <h3>Product Management</h3>
+    <p>Add and manage your products</p>
+  </a>
+  <a href="/admin/orders" class="link-card">
+    <h3>Order Management</h3>
+    <p>Manage your orders</p>
+  </a>
+</section>
+
+<%- include('partials/bottom') %>

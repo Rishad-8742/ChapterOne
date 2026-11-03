@@ -1,0 +1,310 @@
+<%- include('partials/top', { title: 'Add Book', active: 'products' }) %>
+
+<link rel="stylesheet" href="  /css/addProduct.css">
+
+
+<div class="add-book-page">
+
+    <!-- PAGE HEADER -->
+    <div class="add-book-header">
+
+        <a
+            href="/admin/products"
+            class="back-btn"
+        >
+            ← Back to Products
+        </a>
+
+        <h1>Add New Book</h1>
+
+        <p>
+            Add a new book to your ChapterOne store.
+        </p>
+
+    </div>
+
+
+    <!-- FORM CARD -->
+    <section class="add-book-card">
+
+        <div class="form-header">
+
+            <div class="form-icon">
+                +
+            </div>
+
+            <div>
+
+                <h2>Book Information</h2>
+
+                <p>
+                    Enter the details of the book below.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="formError"
+            class="form-error"
+        ></div>
+
+
+        <form
+            id="addProductForm"
+            enctype="multipart/form-data"
+            novalidate
+        >
+
+            <!-- TITLE + AUTHOR -->
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="title">
+                        Title <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        class="form-input"
+                        placeholder="Enter book title"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="author">
+                        Author <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="author"
+                        name="author"
+                        class="form-input"
+                        placeholder="Enter author name"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- language + GENRE -->
+            <div class="form-row">
+
+                <div class="form-group">
+
+                     <label for="language">
+            Language <span>*</span>
+        </label>
+
+        <select
+            id="language"
+            name="language"
+            class="form-input"
+            required
+        >
+            <option value="">Select Language</option>
+            <option value="English">English</option>
+            <option value="Malayalam">Malayalam</option>
+            <option value="Hindi">Hindi</option>
+        </select> 
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="genre">
+                        Genre <span>*</span>
+                        
+                    </label>
+
+                    <select
+                        type="text"
+                        id="genre"
+                        name="genre"
+                        class="form-input"
+                        placeholder="e.g. Mystery"
+                        required
+                    >
+                    
+    <option value="">All Genres</option>
+    <option value="Fiction">Fiction</option>
+    <option value="Mystery">Mystery </option>
+    <option value="Romance">Romance</option>
+    <option value="Science Fiction">Science Fiction</option>
+    <option value="Fantasy">Fantasy</option>
+    <option value="Self Help">Self Help</option>
+</select>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRICE + IMAGE -->
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="price">
+                        Price <span>*</span>
+                    </label>
+
+                    <div class="input-prefix">
+
+                        <span>₹</span>
+
+                        <input
+                            type="number"
+                            id="price"
+                            name="price"
+                            class="form-input"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+               ```html
+<!-- FRONT COVER -->
+<div class="form-group">
+
+    <label for="image">
+        Front Cover <span>*</span>
+    </label>
+
+    <div class="file-input-wrapper">
+        <input
+            type="file"
+            id="image"
+            name="image"
+            accept="image/jpeg,image/png,image/webp"
+            required
+        >
+
+        <div class="file-label">
+            <div class="upload-icon">↑</div>
+            <div>
+                <strong>Choose front cover</strong>
+                <small>JPG, PNG or WEBP · Max 5 MB</small>
+            </div>
+        </div>
+    </div>
+
+    <img
+        id="frontCoverPreview"
+        alt="Front cover preview"
+        hidden
+        style="width:120px; margin-top:12px; border-radius:6px;"
+    >
+
+</div>
+
+<!-- BACK COVER -->
+<div class="form-group">
+
+    <label for="image2">
+        Back Cover <span>*</span>
+    </label>
+
+    <div class="file-input-wrapper">
+        <input
+            type="file"
+            id="image2"
+            name="image2"
+            accept="image/jpeg,image/png,image/webp"
+            required
+        >
+
+        <div class="file-label">
+            <div class="upload-icon">↑</div>
+            <div>
+                <strong>Choose back cover</strong>
+                <small>JPG, PNG or WEBP · Max 5 MB</small>
+            </div>
+        </div>
+    </div>
+
+    <img
+        id="backCoverPreview"
+        alt="Back cover preview"
+        hidden
+        style="width:120px; margin-top:12px; border-radius:6px;"
+    >
+
+</div>
+
+
+            <!-- DESCRIPTION -->
+            <div class="form-group full-width">
+
+                <label for="description">
+                    Description
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    class="form-input"
+                    rows="5"
+                    placeholder="Enter a short description about the book..."
+                ></textarea>
+
+            </div>
+
+
+            <!-- BUTTONS -->
+            <div class="form-actions">
+
+                <a
+                    href="/admin/products"
+                    class="cancel-btn"
+                >
+                    Cancel
+                </a>
+
+
+                <button
+                    type="submit"
+                    id="saveBtn"
+                    class="save-btn"
+                >
+                    Add Book
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+
+<div
+    id="toast"
+    class="toast"
+    role="status"
+></div>
+
+
+<script src="/js/addProduct.js"></script>
+
+
+<%- include('partials/bottom') %>

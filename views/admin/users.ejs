@@ -1,0 +1,49 @@
+<%- include('partials/top', { title: 'User Management', active: 'users' }) %>
+
+<section class="panel">
+  <div class="panel-header toolbar">
+    <div class="toolbar-left">
+      <input type="text" id="searchInput" class="form-input" placeholder="Search name or email">
+      <select id="statusFilter" class="form-input">
+        <option value="all">All status</option>
+        <option value="active">Active</option>
+        <option value="blocked">Blocked</option>
+      </select>
+      <select id="verifiedFilter" class="form-input">
+        <option value="all">All verification</option>
+        <option value="verified">Verified</option>
+        <option value="unverified">Unverified</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Verified</th>
+        <th>Status</th>
+        <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="usersBody"></tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <span id="totalInfo" class="muted-text"></span>
+    <div class="pagination">
+      <button type="button" id="prevBtn" class="btn-light btn-sm">Previous</button>
+      <span id="pageInfo"></span>
+      <button type="button" id="nextBtn" class="btn-light btn-sm">Next</button>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="/js/adminUsers.js"></script>
+
+<%- include('partials/bottom') %>
