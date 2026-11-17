@@ -1,0 +1,213 @@
+/* =========================================================
+   CHAPTERONE - PREMIUM ACCOUNT SIDEBAR
+   Paste at the VERY END of account.css (after the other patches).
+   Works with partials/account-sidebar.ejs
+========================================================= */
+
+.account-sidebar {
+    padding: 22px 16px 16px;
+    border: 1px solid #efe4d6;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 6px 24px rgba(72, 37, 25, 0.06);
+}
+
+/* ---------- Profile header ---------- */
+
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 4px 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #f1e9e4;
+}
+
+.sidebar-avatar {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8d2d44, #5f1c2b);
+    color: #fff;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 21px;
+    font-weight: 600;
+    box-shadow: 0 0 0 4px #fbf0f2;
+}
+
+.sidebar-profile-text {
+    min-width: 0;
+}
+
+.account-sidebar .sidebar-label {
+    margin: 0 0 2px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+}
+
+.account-sidebar .sidebar-profile h2 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.sidebar-name {
+    margin: 3px 0 0;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---------- Menu ---------- */
+
+.account-menu {
+    gap: 6px;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.account-menu .menu-item {
+    position: relative;
+    gap: 12px;
+    padding: 9px 12px 9px 9px;
+    border-radius: 14px;
+    color: #514249;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.account-menu .menu-item .menu-icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: #faf5ee;
+    color: var(--wine);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.account-menu .menu-item .menu-text {
+    flex: 1;
+}
+
+.account-menu .menu-item::after {
+    content: "›";
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.account-menu .menu-item:hover {
+    background: #fbf1f3;
+    color: var(--wine);
+}
+
+.account-menu .menu-item:hover .menu-icon {
+    background: #fff;
+}
+
+.account-menu .menu-item:hover::after {
+    opacity: 0.6;
+    transform: none;
+}
+
+/* active */
+.account-menu .menu-item.active {
+    background: linear-gradient(135deg, #8d2d44, #6a1f31);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(122, 38, 56, 0.3);
+}
+
+.account-menu .menu-item.active .menu-icon {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+}
+
+.account-menu .menu-item.active::after {
+    opacity: 0.8;
+    transform: none;
+}
+
+/* ---------- Logout ---------- */
+
+.menu-divider {
+    height: 1px;
+    margin: 8px 6px 4px;
+    background: #f1e9e4;
+}
+
+.account-menu .logout-link {
+    margin: 0;
+    padding: 9px 12px 9px 9px;
+    border: 0;
+    border-radius: 14px;
+    color: #c0392b;
+}
+
+.account-menu .logout-link .menu-icon {
+    background: #fdecea;
+    color: #c0392b;
+}
+
+.account-menu .logout-link:hover {
+    background: #fdecea;
+    color: #a52e22;
+}
+
+.account-menu .logout-link:hover .menu-icon {
+    background: #fff;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 720px) {
+    .account-sidebar {
+        padding: 18px 14px 14px;
+    }
+
+    .account-menu {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .menu-divider {
+        display: none;
+    }
+
+    .account-menu .menu-item {
+        padding: 8px 10px 8px 8px;
+        border: 1px solid #f1e9e4;
+        font-size: 13px;
+    }
+
+    .account-menu .menu-item.active {
+        border-color: transparent;
+    }
+
+    .account-menu .menu-item::after {
+        display: none;
+    }
+
+    .account-menu .menu-item .menu-icon {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .account-menu .menu-item,
+    .account-menu .menu-item::after,
+    .account-menu .menu-item .menu-icon {
+        transition: none;
+    }
+}

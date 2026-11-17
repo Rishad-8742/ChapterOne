@@ -2,309 +2,169 @@
 
 <link rel="stylesheet" href="  /css/addProduct.css">
 
+<section class="add-book-page">
 
-<div class="add-book-page">
-
-    <!-- PAGE HEADER -->
     <div class="add-book-header">
-
-        <a
-            href="/admin/products"
-            class="back-btn"
-        >
-            ← Back to Products
+        <a href="/admin/products" class="back-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+            Back to products
         </a>
 
         <h1>Add New Book</h1>
-
-        <p>
-            Add a new book to your ChapterOne store.
-        </p>
-
+        <p>Fill in the details below to add a book to your store.</p>
     </div>
 
-
-    <!-- FORM CARD -->
-    <section class="add-book-card">
+    <div class="add-book-card">
 
         <div class="form-header">
-
             <div class="form-icon">
-                +
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/><path d="M9 7h5"/></svg>
             </div>
-
             <div>
-
-                <h2>Book Information</h2>
-
-                <p>
-                    Enter the details of the book below.
-                </p>
-
+                <h2>Book details</h2>
+                <p>Fields marked <span class="req">*</span> are required.</p>
             </div>
-
         </div>
 
+        <form id="addProductForm" enctype="multipart/form-data">
 
-        <div
-            id="formError"
-            class="form-error"
-        ></div>
+            <!-- BASIC INFORMATION -->
+            <h3 class="section-title">Basic information</h3>
 
-
-        <form
-            id="addProductForm"
-            enctype="multipart/form-data"
-            novalidate
-        >
-
-            <!-- TITLE + AUTHOR -->
             <div class="form-row">
-
                 <div class="form-group">
-
-                    <label for="title">
-                        Title <span>*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        class="form-input"
-                        placeholder="Enter book title"
-                        required
-                    >
-
+                    <label for="title">Title <span class="req">*</span></label>
+                    <input type="text" id="title" name="title" class="form-input"
+                           placeholder="e.g. The Great Gatsby" required>
                 </div>
 
-
                 <div class="form-group">
-
-                    <label for="author">
-                        Author <span>*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="author"
-                        name="author"
-                        class="form-input"
-                        placeholder="Enter author name"
-                        required
-                    >
-
+                    <label for="author">Author <span class="req">*</span></label>
+                    <input type="text" id="author" name="author" class="form-input"
+                           placeholder="e.g. F. Scott Fitzgerald" required>
                 </div>
-
             </div>
 
-
-            <!-- language + GENRE -->
             <div class="form-row">
-
                 <div class="form-group">
-
-                     <label for="language">
-            Language <span>*</span>
-        </label>
-
-        <select
-            id="language"
-            name="language"
-            class="form-input"
-            required
-        >
-            <option value="">Select Language</option>
-            <option value="English">English</option>
-            <option value="Malayalam">Malayalam</option>
-            <option value="Hindi">Hindi</option>
-        </select> 
+                    <label for="language">Language <span class="req">*</span></label>
+                    <select id="language" name="language" class="form-input" required>
+                        <option value="">Select language</option>
+                        <option value="English">English</option>
+                        <option value="Malayalam">Malayalam</option>
+                        <option value="Hindi">Hindi</option>
+                    </select>
                 </div>
 
-
                 <div class="form-group">
-
-                    <label for="genre">
-                        Genre <span>*</span>
-                        
-                    </label>
-
-                    <select
-                        type="text"
-                        id="genre"
-                        name="genre"
-                        class="form-input"
-                        placeholder="e.g. Mystery"
-                        required
-                    >
-                    
-    <option value="">All Genres</option>
-    <option value="Fiction">Fiction</option>
-    <option value="Mystery">Mystery </option>
-    <option value="Romance">Romance</option>
-    <option value="Science Fiction">Science Fiction</option>
-    <option value="Fantasy">Fantasy</option>
-    <option value="Self Help">Self Help</option>
-</select>
-
+                    <label for="genre">Genre <span class="req">*</span></label>
+                    <select id="genre" name="genre" class="form-input" required>
+                        <option value="">Select genre</option>
+                        <option value="Fiction">Fiction</option>
+                        <option value="Mystery">Mystery</option>
+                        <option value="Romance">Romance</option>
+                        <option value="Science Fiction">Science Fiction</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Self Help">Self Help</option>
+                    </select>
                 </div>
-
             </div>
 
+            <!-- PRICING -->
+            <h3 class="section-title">Pricing &amp; stock</h3>
 
-            <!-- PRICE + IMAGE -->
             <div class="form-row">
-
                 <div class="form-group">
-
-                    <label for="price">
-                        Price <span>*</span>
-                    </label>
-
+                    <label for="price">Price <span class="req">*</span></label>
                     <div class="input-prefix">
-
                         <span>₹</span>
-
-                        <input
-                            type="number"
-                            id="price"
-                            name="price"
-                            class="form-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                            required
-                        >
-
+                        <input type="number" id="price" name="price" class="form-input"
+                               min="0" step="0.01" placeholder="0.00" required>
                     </div>
-
                 </div>
 
-
-               ```html
-<!-- FRONT COVER -->
-<div class="form-group">
-
-    <label for="image">
-        Front Cover <span>*</span>
-    </label>
-
-    <div class="file-input-wrapper">
-        <input
-            type="file"
-            id="image"
-            name="image"
-            accept="image/jpeg,image/png,image/webp"
-            required
-        >
-
-        <div class="file-label">
-            <div class="upload-icon">↑</div>
-            <div>
-                <strong>Choose front cover</strong>
-                <small>JPG, PNG or WEBP · Max 5 MB</small>
+                <div class="form-group">
+                    <label for="stock">Stock <span class="req">*</span></label>
+                    <input type="number" id="stock" name="stock" class="form-input"
+                           min="0" step="1" placeholder="Number of copies" required>
+                </div>
             </div>
-        </div>
-    </div>
-
-    <img
-        id="frontCoverPreview"
-        alt="Front cover preview"
-        hidden
-        style="width:120px; margin-top:12px; border-radius:6px;"
-    >
-
-</div>
-
-<!-- BACK COVER -->
-<div class="form-group">
-
-    <label for="image2">
-        Back Cover <span>*</span>
-    </label>
-
-    <div class="file-input-wrapper">
-        <input
-            type="file"
-            id="image2"
-            name="image2"
-            accept="image/jpeg,image/png,image/webp"
-            required
-        >
-
-        <div class="file-label">
-            <div class="upload-icon">↑</div>
-            <div>
-                <strong>Choose back cover</strong>
-                <small>JPG, PNG or WEBP · Max 5 MB</small>
-            </div>
-        </div>
-    </div>
-
-    <img
-        id="backCoverPreview"
-        alt="Back cover preview"
-        hidden
-        style="width:120px; margin-top:12px; border-radius:6px;"
-    >
-
-</div>
-
 
             <!-- DESCRIPTION -->
+            <h3 class="section-title">Description</h3>
+
             <div class="form-group full-width">
+                <label for="description">About this book</label>
+                <textarea id="description" name="description" class="form-input"
+                          rows="4" placeholder="A short summary readers will see on the book page..."></textarea>
+            </div>
 
-                <label for="description">
-                    Description
-                </label>
+            <!-- COVERS -->
+            <h3 class="section-title">Book covers</h3>
 
-                <textarea
-                    id="description"
-                    name="description"
-                    class="form-input"
-                    rows="5"
-                    placeholder="Enter a short description about the book..."
-                ></textarea>
+            <div class="cover-grid full-width">
+
+                <div class="cover-field">
+                    <span class="cover-label">Front cover</span>
+
+                    <label for="image" class="cover-drop">
+                        <img id="frontCoverPreview" class="cover-preview"
+                             alt="Front cover preview" hidden>
+
+                        <span class="cover-placeholder">
+                            <span class="upload-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                            </span>
+                            <strong>Choose front cover</strong>
+                            <small>JPG, PNG or WebP · max 5 MB</small>
+                        </span>
+
+                        <span class="cover-change">Change image</span>
+
+                        <input type="file" id="image" name="image"
+                               accept="image/jpeg,image/png,image/webp" hidden>
+                    </label>
+                </div>
+
+                <div class="cover-field">
+                    <span class="cover-label">Back cover</span>
+
+                    <label for="image2" class="cover-drop">
+                        <img id="backCoverPreview" class="cover-preview"
+                             alt="Back cover preview" hidden>
+
+                        <span class="cover-placeholder">
+                            <span class="upload-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                            </span>
+                            <strong>Choose back cover</strong>
+                            <small>JPG, PNG or WebP · max 5 MB</small>
+                        </span>
+
+                        <span class="cover-change">Change image</span>
+
+                        <input type="file" id="image2" name="image2"
+                               accept="image/jpeg,image/png,image/webp" hidden>
+                    </label>
+                </div>
 
             </div>
 
+            <p id="formError" class="form-error" role="alert"></p>
 
-            <!-- BUTTONS -->
             <div class="form-actions">
-
-                <a
-                    href="/admin/products"
-                    class="cancel-btn"
-                >
-                    Cancel
-                </a>
-
-
-                <button
-                    type="submit"
-                    id="saveBtn"
-                    class="save-btn"
-                >
-                    Add Book
-                </button>
-
+                <a href="/admin/products" class="cancel-btn">Cancel</a>
+                <button type="submit" id="saveBtn" class="save-btn">Add Book</button>
             </div>
 
         </form>
+    </div>
 
-    </section>
+</section>
 
-</div>
+<div id="toast" class="toast" role="status"></div>
 
-
-<div
-    id="toast"
-    class="toast"
-    role="status"
-></div>
-
-
+<!-- change this to the filename of your add-book JS -->
 <script src="/js/addProduct.js"></script>
-
 
 <%- include('partials/bottom') %>

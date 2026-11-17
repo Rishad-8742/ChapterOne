@@ -1,33 +1,29 @@
 // ELEMENTS
-const searchInput =
-    document.getElementById("searchInput");
 
-const genreFilter =
-    document.getElementById("genreFilter");
+const searchInput = document.getElementById("searchInput");
+const genreFilter = document.getElementById("genreFilter");
+const languageFilter = document.getElementById("languageFilter");
+const sortFilter = document.getElementById("newest");
 
-const languageFilter =
-    document.getElementById("languageFilter");
+const priceRange = document.getElementById("priceRange");
+const priceValue = document.getElementById("priceValue");
+const priceMaxLabel = document.getElementById("priceMaxLabel");
 
-const bookContainer =
-    document.getElementById("bookContainer");
+const resetButton = document.getElementById("resetFilters");
 
-const loading =
-    document.getElementById("loading");
-
-const noBooks =
-    document.getElementById("noBooks");
-
-const bookCount =
-    document.getElementById("bookCount");
-
-const cartCount =
-    document.getElementById("cartCount");
+const bookContainer = document.getElementById("bookContainer");
+const loading = document.getElementById("loading");
+const noBooks = document.getElementById("noBooks");
+const bookCount = document.getElementById("bookCount");
+const cartCount = document.getElementById("cartCount");
 
 
-// BOOK DATA
+// STATE
 
+const SORT_KEY = "chapterone:bookSort";
 
 let allBooks = [];
+
 
 // LOAD BOOKS
 
@@ -36,69 +32,37 @@ async function loadBooks() {
     try {
 
         loading.style.display = "flex";
-
         noBooks.style.display = "none";
-
         bookContainer.innerHTML = "";
 
+        const response = await fetch("/user/api/books", {
+            method: "GET",
+            headers: { "Accept": "application/json" },
+            credentials: "include"
+        });
 
-        const response = await fetch(
-            "/user/api/books",
-            {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                },
-                credentials: "include"
-            }
-        );
-
-
-        const data =
-            await response.json();
-
-
-        console.log(
-            "Books API response:",
-            data
-        );
-
+        const data = await response.json();
 
         if (!response.ok || !data.success) {
-
-            throw new Error(
-                data.message ||
-                "Failed to load books"
-            );
-
+            throw new Error(data.message || "Failed to load books");
         }
 
+        allBooks = data.books || [];
 
-        allBooks =
-            data.books || [];
-
-
+        syncPriceBounds();
         renderBooks();
-
 
     } catch (error) {
 
-        console.error(
-            "Load books error:",
-            error
-        );
+        console.error("Load books error:", error);
 
-
-        bookCount.textContent =
-            "Unable to load books";
-
+        bookCount.textContent = "Unable to load books";
 
         bookContainer.innerHTML = `
             <p class="empty">
                 Failed to load books.
             </p>
         `;
-
 
     } finally {
 
@@ -108,93 +72,177 @@ async function loadBooks() {
 
 }
 
+
+// PRICE RANGE
+
+// Slider never hides expensive books: its max grows to fit the priciest book.
+function syncPriceBounds() {
+
+    if (!priceRange) return;
+
+    const highest = allBooks.reduce(
+        (max, book) => Math.max(max, Number(book.price || 0)),
+        0
+    );
+
+    const max = Math.max(1000, Math.ceil(highest / 50) * 50);
+
+    priceRange.max = max;
+    priceRange.value = max;
+
+    if (priceMaxLabel) priceMaxLabel.textContent = `₹${max}`;
+
+    updatePriceUI();
+
+}
+
+function updatePriceUI() {
+
+    if (!priceRange) return;
+
+    const min = Number(priceRange.min) || 0;
+    const max = Number(priceRange.max) || 1000;
+    const value = Number(priceRange.value);
+
+    const fill = max > min ? ((value - min) / (max - min)) * 100 : 100;
+
+    priceRange.style.setProperty("--fill", `${fill}%`);
+
+    if (priceValue) priceValue.textContent = `₹${value}`;
+
+}
+
+
+// SAVED SORT (remembered in this browser)
+
+function saveSort() {
+
+    try {
+        localStorage.setItem(SORT_KEY, sortFilter.value);
+    } catch (error) {
+        // storage blocked: sorting still works, it just isn't remembered
+    }
+
+}
+
+function restoreSort() {
+
+    if (!sortFilter) return;
+
+    try {
+
+        const saved = localStorage.getItem(SORT_KEY);
+
+        const isValid = [...sortFilter.options].some(
+            option => option.value === saved
+        );
+
+        if (saved && isValid) sortFilter.value = saved;
+
+    } catch (error) {
+        // storage blocked: keep the default sort
+    }
+
+}
+
+
+// RESET
+
+function hasActiveFilters() {
+
+    return Boolean(
+        searchInput.value.trim() ||
+        genreFilter.value ||
+        languageFilter.value ||
+        (sortFilter && sortFilter.value) ||
+        (priceRange && Number(priceRange.value) < Number(priceRange.max))
+    );
+
+}
+
+function updateResetButton() {
+
+    if (resetButton) resetButton.hidden = !hasActiveFilters();
+
+}
+
+function resetFilters() {
+
+    searchInput.value = "";
+    genreFilter.value = "";
+    languageFilter.value = "";
+
+    if (sortFilter) {
+        sortFilter.value = "";
+        saveSort();
+    }
+
+    if (priceRange) priceRange.value = priceRange.max;
+
+    updatePriceUI();
+    renderBooks();
+
+}
+
+
 // RENDER BOOKS
+// A book is out of stock only when the API sends a stock number of 0 or less.
+function isOutOfStock(book) {
 
+    if (
+        book.stock === undefined ||
+        book.stock === null ||
+        book.stock === ""
+    ) {
+        return false;
+    }
 
+    const stock = Number(book.stock);
+
+    return Number.isFinite(stock) && stock <= 0;
+
+}
 function renderBooks() {
 
-    const searchText =
-        searchInput.value
-            .trim()
-            .toLowerCase();
 
+    const searchText = searchInput.value.trim().toLowerCase();
+    const selectedGenre = genreFilter.value;
+    const selectedLanguage = languageFilter.value;
 
-    const selectedGenre =
-        genreFilter.value;
-
-
-    const selectedLanguage =
-        languageFilter.value;
-
-        const maxPrice = priceRange
-            ? Number(priceRange.value)
-            : Infinity;
+    const maxPrice = priceRange ? Number(priceRange.value) : Infinity;
 
     // FILTER BOOKS
 
-    const filteredBooks =
-        allBooks.filter(book => {
+    const filteredBooks = allBooks.filter(book => {
 
+        const title = String(book.title || "").toLowerCase();
+        const author = String(book.author || "").toLowerCase();
+        const genre = String(book.genre || "");
+        const language = String(book.language || "");
 
-            // TITLE
+        const matchesSearch =
+            title.includes(searchText) ||
+            author.includes(searchText);
 
-            const title =
-                String(book.title || "")
-                    .toLowerCase();
+        const matchesGenre =
+            !selectedGenre || genre === selectedGenre;
 
+        const matchesLanguage =
+            !selectedLanguage || language === selectedLanguage;
 
-            // AUTHOR
+        const matchesPrice =
+            Number(book.price || 0) <= maxPrice;
 
-            const author =
-                String(book.author || "")
-                    .toLowerCase();
-
-
-            // GENRE
-
-            const genre =
-                String(book.genre || "");
-
-
-            // LANGUAGE
-
-            const language =
-                String(book.language || "");
-
-
-            // SEARCH
-
-            const matchesSearch =
-                title.includes(searchText) ||
-                author.includes(searchText);
-
-
-            // GENRE FILTER
-
-            const matchesGenre =
-                !selectedGenre ||
-                genre === selectedGenre;
-
-
-            // LANGUAGE FILTER
-
-            const matchesLanguage =
-                !selectedLanguage ||
-                language === selectedLanguage;
-
-                const matchesPrice =
-                Number(book.price || 0) <= maxPrice;
-
-
-            return (
+        return (
             matchesSearch &&
             matchesGenre &&
             matchesLanguage &&
             matchesPrice
-                    );
+        );
 
-        });
+    });
 
+    updateResetButton();
 
     // CLEAR OLD BOOKS
 
@@ -205,14 +253,11 @@ function renderBooks() {
     if (filteredBooks.length === 0) {
 
         noBooks.style.display = "block";
-
-        bookCount.textContent =
-            "0 books found";
+        bookCount.textContent = "0 books found";
 
         return;
 
     }
-
 
     noBooks.style.display = "none";
 
@@ -220,32 +265,22 @@ function renderBooks() {
 
     bookCount.textContent =
         `${filteredBooks.length} ${
-            filteredBooks.length === 1
-                ? "book"
-                : "books"
+            filteredBooks.length === 1 ? "book" : "books"
         } found`;
 
+    // SORT + CREATE BOOK CARDS
+    // SORT + CREATE BOOK CARDS
 
-    // CREATE BOOK CARDS
+    sortBooks(filteredBooks).forEach(book => {
 
-  // SORT BOOKS
-const sortedBooks = sortBooks(filteredBooks);
+        const outOfStock = isOutOfStock(book);
 
-// CREATE BOOK CARDS
-sortedBooks.forEach(book => {
-
-        const card =
-            document.createElement("article");
+        const card = document.createElement("article");
 
         card.className =
-            "book-card";
+            `book-card${outOfStock ? " is-out-of-stock" : ""}`;
 
-
-        const image =
-            book.image
-                ? book.image
-                : "/images/default-book.jpg";
-
+        const image = book.image ? book.image : "/images/default-book.jpg";
 
         card.innerHTML = `
 
@@ -256,6 +291,10 @@ sortedBooks.forEach(book => {
                     alt="${escapeHTML(book.title || "Book")}"
                     onerror="this.src='/images/default-book.jpg'"
                 >
+
+                ${outOfStock
+                    ? '<span class="stock-tag">Out of stock</span>'
+                    : ""}
 
             </div>
 
@@ -291,233 +330,52 @@ sortedBooks.forEach(book => {
                         ₹${Number(book.price || 0).toFixed(2)}
                     </span>
 
+                    <button type="button" class="add-cart-btn">
+                        Add to Cart
+                    </button>
 
-                   <button
-    type="button"
-    class="add-cart-btn"
-    onclick="addToCart('${book._id}')"
->
-    Add to Cart
-</button>
                 </div>
 
             </div>
 
         `;
 
+        // Open the selected book page when clicking the card
+        card.addEventListener("click", () => {
+            window.location.href =
+                `/user/books/${encodeURIComponent(book._id)}`;
+        });
 
-        // Open selected book page when clicking the card
-card.style.cursor = "pointer";
+        // Add to cart should not open the selected book page
+        const addCartBtn = card.querySelector(".add-cart-btn");
 
-card.addEventListener("click", () => {
-    window.location.href = `/user/books/${encodeURIComponent(book._id)}`;
-});
+        if (outOfStock) {
+            addCartBtn.disabled = true;
+        }
 
-// Add to cart should not open the selected book page
-const addCartBtn = card.querySelector(".add-cart-btn");
+        addCartBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
 
-addCartBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    addToCart(book._id);
-});
+            if (!outOfStock) addToCart(book._id);
+        });
 
-bookContainer.appendChild(card);
+        bookContainer.appendChild(card);
 
     });
-
-}
-
-// SEARCH
-
-searchInput.addEventListener(
-    "input",
-    function () {
-
-        renderBooks();
-
-    }
-);
-
-// GENRE FILTER
-
-genreFilter.addEventListener(
-    "change",
-    function () {
-
-        renderBooks();
-
-    }
-);
-
-// LANGUAGE FILTER
-
-languageFilter.addEventListener(
-    "change",
-    function () {
-
-        renderBooks();
-
-    }
-);
-
-// ADD TO CART
-
-async function addToCart(bookId) {
-
-    try {
-
-        const response =
-            await fetch(
-                "/user/cart",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    credentials: "include",
-
-                    body: JSON.stringify({
-                        bookId: bookId,
-                        quantity: 1
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok || !data.success) {
-
-            throw new Error(
-                data.message ||
-                "Could not add book to cart"
-            );
-
-        }
-
-
-        updateCartCount();
-
-
-        alert(
-            "Book added to cart"
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Add to cart error:",
-            error
-        );
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-// CART COUNT
-
-async function updateCartCount() {
-
-    try {
-
-        const response =
-            await fetch(
-                "/user/cart/count",
-                {
-                    credentials: "include"
-                }
-            );
-
-
-        if (!response.ok) {
-
-            return;
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            data.success &&
-            cartCount
-        ) {
-
-            cartCount.textContent =
-                data.count || 0;
-
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Cart count error:",
-            error
-        );
-
-    }
-
-}
-
-// ESCAPE HTML
-
-function escapeHTML(value) {
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
+    
 }
 
 
-const sortFilter = document.getElementById("newest");
-
-// SORT FILTER
-if (sortFilter) {
-    sortFilter.addEventListener("change", renderBooks);
-}
+// SORT
 
 function sortBooks(books) {
+
     const sortValue = sortFilter?.value || "";
 
     const sortedBooks = [...books];
 
     switch (sortValue) {
+
         case "price-low":
             sortedBooks.sort(
                 (a, b) => Number(a.price || 0) - Number(b.price || 0)
@@ -538,6 +396,7 @@ function sortBooks(books) {
                     )
             );
             break;
+
     }
 
     return sortedBooks;
@@ -545,20 +404,113 @@ function sortBooks(books) {
 }
 
 
-// PRICE RANGE FILTER
+// EVENTS
 
-const priceRange = document.getElementById("priceRange");
-const priceValue = document.getElementById("priceValue");
+searchInput.addEventListener("input", renderBooks);
+genreFilter.addEventListener("change", renderBooks);
+languageFilter.addEventListener("change", renderBooks);
 
-if (priceRange && priceValue) {
-    priceRange.addEventListener("input", function () {
-        priceValue.textContent = `₹${this.value}`;
-
+if (sortFilter) {
+    sortFilter.addEventListener("change", () => {
+        saveSort();
         renderBooks();
     });
 }
 
-// INITIAL LOAD
-loadBooks();
+if (priceRange) {
+    priceRange.addEventListener("input", () => {
+        updatePriceUI();
+        renderBooks();
+    });
+}
 
+if (resetButton) {
+    resetButton.addEventListener("click", resetFilters);
+}
+
+
+// ADD TO CART
+
+async function addToCart(bookId) {
+
+    try {
+
+        const response = await fetch("/user/cart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                bookId: bookId,
+                quantity: 1
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Could not add book to cart");
+        }
+
+        updateCartCount();
+
+        alert("Book added to cart");
+
+    } catch (error) {
+
+        console.error("Add to cart error:", error);
+
+        alert(error.message);
+
+    }
+
+}
+
+
+// CART COUNT
+
+async function updateCartCount() {
+
+    try {
+
+        const response = await fetch("/user/cart/count", {
+            credentials: "include"
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        if (data.success && cartCount) {
+            cartCount.textContent = data.count || 0;
+        }
+
+    } catch (error) {
+
+        console.error("Cart count error:", error);
+
+    }
+
+}
+
+
+// ESCAPE HTML
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+// INITIAL LOAD
+
+restoreSort();
+updatePriceUI();
+
+loadBooks();
 updateCartCount();

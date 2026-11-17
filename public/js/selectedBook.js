@@ -1,17 +1,86 @@
+"use strict";
+
+// SHARED HELPERS
+
+const DEFAULT_COVER = "/images/default-book.jpg";
+
+function formatPrice(value) {
+    return `₹${Number(value || 0).toFixed(2)}`;
+}
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function createElement(tag, className, text) {
+    const node = document.createElement(tag);
+
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+
+    return node;
+}
+
+// Updates the navbar cart badge (these functions live in the shared navbar code).
+async function refreshCartCount() {
+    try {
+        if (typeof window.updateCartCount === "function") {
+            window.updateCartCount();
+        }
+
+        if (typeof updateNavbarCartCount === "function") {
+            await updateNavbarCartCount();
+        }
+    } catch (error) {
+        console.error("Cart count error:", error);
+    }
+}
+
+async function addBookToCart(bookId, quantity) {
+    const response = await fetch("/user/cart", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ bookId, quantity })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not add book to cart.");
+    }
+
+    return data;
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    // =====================================
     // DOM ELEMENTS
+    // =====================================
 
     const bookId = document.body.dataset.bookId;
+
     const bookImage = document.getElementById("bookImage");
-    const bookImage2 = document.getElementById("bookImage2");
+    const imageCard = document.querySelector(".image-card");
+
+    const coverThumbnails = document.getElementById("coverThumbnails");
+    const frontThumb = document.getElementById("frontThumb");
+    const frontThumbImage = document.getElementById("frontThumbImage");
+    const backThumb = document.getElementById("backThumb");
+    const backThumbImage = document.getElementById("backThumbImage");
 
     const bookTitle = document.getElementById("bookTitle");
     const bookAuthor = document.getElementById("bookAuthor");
     const bookGenre = document.getElementById("bookGenre");
     const bookPrice = document.getElementById("bookPrice");
     const bookDescription = document.getElementById("bookDescription");
+    const descToggle = document.getElementById("descToggle");
+    const bookSpecs = document.getElementById("bookSpecs");
 
     const breadcrumbGenre = document.getElementById("breadcrumbGenre");
     const breadcrumbTitle = document.getElementById("breadcrumbTitle");
@@ -21,43 +90,177 @@ document.addEventListener("DOMContentLoaded", () => {
     const decreaseBtn = document.getElementById("decreaseQty");
     const increaseBtn = document.getElementById("increaseQty");
     const addToCartBtn = document.getElementById("addToCartBtn");
+    const addToCartLabel =
+        document.getElementById("addToCartLabel") || addToCartBtn;
     const message = document.getElementById("message");
+
+    const LONG_DESCRIPTION = 320;
 
     let selectedBook = null;
     let quantity = 1;
+    let messageTimer = null;
 
-    // SHOW MESSAGE
 
+    // =====================================
+    // MESSAGE
+    // =====================================
 
     function showMessage(text, isError = false) {
         if (!message) return;
 
+        clearTimeout(messageTimer);
+
         message.textContent = text;
         message.classList.toggle("error", isError);
-    }
 
-    // DISPLAY BOOK IMAGES
-
-    function setBookImage(img, src, alt) {
-        if (!img) return;
-
-        // Prevent a broken image from remaining visible
-        img.onerror = () => {
-            img.hidden = true;
-            img.removeAttribute("src");
-        };
-
-        if (src && String(src).trim() !== "") {
-            img.src = src;
-            img.alt = alt;
-            img.hidden = false;
-        } else {
-            img.hidden = true;
-            img.removeAttribute("src");
+        // Success messages fade away; errors stay until the next action.
+        if (text && !isError) {
+            messageTimer = setTimeout(() => {
+                message.textContent = "";
+            }, 3500);
         }
     }
 
-    // QUANTITY CONTROLS
+
+    // =====================================
+    // COVER GALLERY
+    // =====================================
+
+    function showCover(which) {
+        const src = which === "back"
+            ? selectedBook?.image2
+            : selectedBook?.image;
+
+        if (!src || !bookImage) return;
+
+        bookImage.src = src;
+        bookImage.alt =
+            `${selectedBook.title || "Book"} ${which === "back" ? "back" : "front"} cover`;
+
+        frontThumb?.classList.toggle("active", which !== "back");
+        backThumb?.classList.toggle("active", which === "back");
+    }
+
+    function setupGallery(book) {
+        if (!bookImage) return;
+
+        // A broken image falls back to the default cover once.
+        bookImage.onerror = () => {
+            bookImage.onerror = null;
+            bookImage.src = DEFAULT_COVER;
+        };
+
+        const hasFront = Boolean(book.image);
+        const hasBack = Boolean(book.image2);
+
+        if (hasFront) {
+            showCover("front");
+        } else {
+            bookImage.src = DEFAULT_COVER;
+            bookImage.alt = `${book.title || "Book"} cover`;
+        }
+
+        // Thumbnails are only useful when there are two covers to switch between.
+        if (coverThumbnails) coverThumbnails.hidden = !(hasFront && hasBack);
+
+        if (frontThumbImage && hasFront) frontThumbImage.src = book.image;
+        if (backThumbImage && hasBack) backThumbImage.src = book.image2;
+
+        if (frontThumb) {
+            frontThumb.hidden = !hasFront;
+            frontThumb.onclick = () => showCover("front");
+        }
+
+        if (backThumb) {
+            backThumb.hidden = !hasBack;
+            backThumb.onclick = () => showCover("back");
+        }
+    }
+
+
+    // =====================================
+    // STOCK
+    // =====================================
+
+    function renderStock(stock) {
+        if (!stockNote) return;
+
+        stockNote.classList.remove("in-stock", "low-stock", "out-of-stock");
+
+        if (stock <= 0) {
+            stockNote.textContent = "Out of stock";
+            stockNote.classList.add("out-of-stock");
+        } else if (stock <= 5) {
+            stockNote.textContent = `Only ${stock} left`;
+            stockNote.classList.add("low-stock");
+        } else {
+            stockNote.textContent = "In stock · Ready to dispatch";
+            stockNote.classList.add("in-stock");
+        }
+    }
+
+
+    // =====================================
+    // DESCRIPTION + SPECS
+    // =====================================
+
+    function renderDescription(text) {
+        bookDescription.textContent = text;
+
+        const isLong = text.length > LONG_DESCRIPTION;
+
+        bookDescription.classList.toggle("is-clamped", isLong);
+
+        if (!descToggle) return;
+
+        descToggle.hidden = !isLong;
+        descToggle.textContent = "Read more";
+        descToggle.setAttribute("aria-expanded", "false");
+
+        descToggle.onclick = () => {
+            const expanded = bookDescription.classList.toggle("is-clamped") === false;
+
+            descToggle.textContent = expanded ? "Show less" : "Read more";
+            descToggle.setAttribute("aria-expanded", String(expanded));
+        };
+    }
+
+    // Only fields the API actually returns are shown.
+    function renderSpecs(book) {
+        if (!bookSpecs) return;
+
+        const rows = [
+            ["Language", book.language],
+            ["Pages", book.pages],
+            ["Publisher", book.publisher],
+            ["Published", book.publishedYear || book.year],
+            ["ISBN", book.isbn]
+        ].filter(([, value]) =>
+            value !== undefined &&
+            value !== null &&
+            String(value).trim() !== ""
+        );
+
+        bookSpecs.replaceChildren();
+
+        rows.forEach(([label, value]) => {
+            const row = createElement("div", "spec-row");
+
+            row.append(
+                createElement("dt", "", label),
+                createElement("dd", "", String(value))
+            );
+
+            bookSpecs.append(row);
+        });
+
+        bookSpecs.hidden = rows.length === 0;
+    }
+
+
+    // =====================================
+    // QUANTITY + ADD BUTTON STATE
+    // =====================================
 
     function updateQuantity() {
         if (!quantityDisplay || !decreaseBtn || !increaseBtn) {
@@ -74,7 +277,18 @@ document.addEventListener("DOMContentLoaded", () => {
             !selectedBook || quantity >= stock;
     }
 
+    function restoreAddButton() {
+        const stock = Number(selectedBook?.stock || 0);
+
+        addToCartBtn.classList.remove("is-added");
+        addToCartBtn.disabled = !selectedBook || stock <= 0;
+        addToCartLabel.textContent = stock <= 0 ? "Out of Stock" : "Add to Cart";
+    }
+
+
+    // =====================================
     // LOAD BOOK DETAILS
+    // =====================================
 
     async function loadBook() {
         try {
@@ -101,105 +315,35 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             selectedBook = data.book;
-            
-const frontThumb = document.getElementById("frontThumb");
-const frontThumbImage = document.getElementById("frontThumbImage");
 
-const backThumb = document.getElementById("backThumb");
-const backThumbImage = document.getElementById("backThumbImage");
-
-if (selectedBook.image) {
-    bookImage.src = selectedBook.image;
-    frontThumbImage.src = selectedBook.image;
-    frontThumb.hidden = false;
-}
-
-if (selectedBook.image2) {
-    backThumbImage.src = selectedBook.image2;
-    backThumb.hidden = false;
-} else {
-    backThumb.hidden = true;
-}
-
-frontThumb.onclick = () => {
-    if (!selectedBook.image) return;
-
-    bookImage.src = selectedBook.image;
-
-    frontThumb.classList.add("active");
-    backThumb.classList.remove("active");
-};
-
-backThumb.onclick = () => {
-    if (!selectedBook.image2) return;
-
-    bookImage.src = selectedBook.image2;
-
-    backThumb.classList.add("active");
-    frontThumb.classList.remove("active");
-};
-
+            const title = selectedBook.title || "Untitled";
 
             // Book information
-            bookTitle.textContent =
-                selectedBook.title || "Untitled";
+            bookTitle.textContent = title;
+            bookAuthor.textContent = selectedBook.author || "Unknown Author";
+            bookGenre.textContent = selectedBook.genre || "Unknown";
+            bookPrice.textContent = formatPrice(selectedBook.price);
 
-            bookAuthor.textContent =
-                selectedBook.author || "Unknown Author";
-
-            bookGenre.textContent =
-                selectedBook.genre || "Unknown";
-
-            bookPrice.textContent =
-                `₹${Number(selectedBook.price || 0).toFixed(2)}`;
-
-            bookDescription.textContent =
-                selectedBook.description ||
-                "No description available.";
-
-            breadcrumbGenre.textContent =
-                selectedBook.genre || "Books";
-
-            breadcrumbTitle.textContent =
-                selectedBook.title || "Untitled";
-
-           
-            // FIRST COVER IMAGE
-
-            setBookImage(
-                bookImage,
-                selectedBook.image,
-                `${selectedBook.title || "Book"} cover`
+            renderDescription(
+                selectedBook.description || "No description available."
             );
 
-            // SECOND COVER IMAGE
+            renderSpecs(selectedBook);
 
-            setBookImage(
-                bookImage2,
-                selectedBook.image2,
-                `${selectedBook.title || "Book"} alternate cover`
-            );
+            breadcrumbGenre.textContent = selectedBook.genre || "Books";
+            breadcrumbTitle.textContent = title;
 
-            // Debug: check whether the API sends image2
-            console.log("First cover:", selectedBook.image);
-            console.log("Second cover:", selectedBook.image2);
+            document.title = `${title} | ChapterOne`;
 
-            // STOCK INFORMATION
+            // Cover images
+            setupGallery(selectedBook);
 
-            const stock = Number(selectedBook.stock) || 0;
-
-            stockNote.textContent = stock > 0
-                ? "✓ In Stock & Ready to Dispatch"
-                : "Currently out of stock";
-
-            addToCartBtn.disabled = stock <= 0;
-
-            addToCartBtn.textContent = stock <= 0
-                ? "Out of Stock"
-                : "Add to Cart";
+            // Stock information
+            renderStock(Number(selectedBook.stock) || 0);
 
             quantity = 1;
             updateQuantity();
+            restoreAddButton();
 
             // Load related books
             loadRelatedBooks(selectedBook);
@@ -208,14 +352,21 @@ backThumb.onclick = () => {
             console.error("Load book error:", error);
 
             bookTitle.textContent = "Book unavailable";
-            bookDescription.textContent = error.message;
-            stockNote.textContent = "";
+            renderDescription(error.message);
+
+            if (stockNote) {
+                stockNote.textContent = "";
+                stockNote.className = "stock-badge";
+            }
 
             addToCartBtn.disabled = true;
         }
     }
 
-    // DECREASE QUANTITY
+
+    // =====================================
+    // QUANTITY BUTTONS
+    // =====================================
 
     decreaseBtn.addEventListener("click", () => {
         if (quantity > 1) {
@@ -223,8 +374,6 @@ backThumb.onclick = () => {
             updateQuantity();
         }
     });
-
-    // INCREASE QUANTITY
 
     increaseBtn.addEventListener("click", () => {
         const stock = Number(selectedBook?.stock || 0);
@@ -235,84 +384,66 @@ backThumb.onclick = () => {
         }
     });
 
+
+    // =====================================
     // ADD TO CART
+    // =====================================
 
     addToCartBtn.addEventListener("click", async () => {
         if (!selectedBook) return;
 
         addToCartBtn.disabled = true;
-        addToCartBtn.textContent = "Adding...";
+        addToCartLabel.textContent = "Adding...";
 
         showMessage("");
 
         try {
-            const response = await fetch("/user/cart", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json"
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    bookId: selectedBook._id,
-                    quantity
-                })
-            });
+            const data = await addBookToCart(selectedBook._id, quantity);
 
-            const data = await response.json();
+            showMessage(data.message || "Book added to cart!");
 
-            if (!response.ok || !data.success) {
-                throw new Error(
-                    data.message || "Could not add book to cart."
-                );
-            }
+            await refreshCartCount();
 
-            showMessage(
-                data.message || "Book added to cart!"
-            );
+            // Short confirmation on the button itself.
+            addToCartBtn.classList.add("is-added");
+            addToCartLabel.textContent = "Added ✓";
+
+            await wait(1400);
 
         } catch (error) {
             console.error("Add to cart error:", error);
             showMessage(error.message, true);
 
         } finally {
-            const stock = Number(selectedBook?.stock || 0);
-
-            addToCartBtn.disabled =
-                !selectedBook || stock <= 0;
-
-            addToCartBtn.textContent =
-                stock <= 0 ? "Out of Stock" : "Add to Cart";
+            restoreAddButton();
         }
     });
 
-    // IMAGE ZOOM - BOTH COVERS
 
-    const imageCard = document.querySelector(".image-card");
+    // =====================================
+    // IMAGE ZOOM (mouse devices only)
+    // =====================================
 
-    const images = [bookImage, bookImage2].filter(Boolean);
+    if (
+        imageCard &&
+        bookImage &&
+        window.matchMedia("(hover: hover)").matches
+    ) {
+        bookImage.addEventListener("mousemove", event => {
+            if (!bookImage.src) return;
 
-    if (imageCard) {
-        images.forEach(img => {
-            img.addEventListener("mousemove", event => {
-                if (img.hidden || !img.src) return;
+            const rect = bookImage.getBoundingClientRect();
 
-                const rect = img.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
 
-                const x =
-                    ((event.clientX - rect.left) / rect.width) * 100;
+            bookImage.style.transformOrigin = `${x}% ${y}%`;
+            bookImage.style.transform = "scale(1.8)";
+        });
 
-                const y =
-                    ((event.clientY - rect.top) / rect.height) * 100;
-
-                img.style.transformOrigin = `${x}% ${y}%`;
-                img.style.transform = "scale(1.8)";
-            });
-
-            img.addEventListener("mouseleave", () => {
-                img.style.transform = "scale(1)";
-                img.style.transformOrigin = "center center";
-            });
+        bookImage.addEventListener("mouseleave", () => {
+            bookImage.style.transform = "scale(1)";
+            bookImage.style.transformOrigin = "center center";
         });
     }
 
@@ -320,13 +451,20 @@ backThumb.onclick = () => {
     loadBook();
 });
 
+
+// =====================================
 // RELATED BOOKS
+// =====================================
 
 async function loadRelatedBooks(currentBook) {
     const container =
         document.getElementById("relatedBooksContainer");
 
     if (!container || !currentBook) return;
+
+    function showNote(text) {
+        container.replaceChildren(createElement("p", "related-empty", text));
+    }
 
     try {
         const response = await fetch("/user/api/books", {
@@ -355,48 +493,107 @@ async function loadRelatedBooks(currentBook) {
                 String(book.genre || "").trim().toLowerCase() ===
                     currentGenre
             )
-            .slice(0, 3);
+            .slice(0, 4);
 
         if (relatedBooks.length === 0) {
-            container.textContent =
-                "No similar books are available right now.";
+            showNote("No similar books are available right now.");
             return;
         }
 
         container.replaceChildren();
 
         relatedBooks.forEach(book => {
-            const card = document.createElement("article");
-            card.className = "related-book-card";
-            card.style.cursor = "pointer";
+            const openBook = () => {
+                window.location.href =
+                    `/user/books/${encodeURIComponent(book._id)}`;
+            };
+
+            const card = createElement("article", "related-book-card");
+            card.tabIndex = 0;
+            card.setAttribute("role", "link");
 
             const image = document.createElement("img");
-            image.src = book.image || "/images/default-book.jpg";
+            image.src = book.image || DEFAULT_COVER;
             image.alt = book.title || "Book cover";
+            image.loading = "lazy";
 
             image.onerror = function () {
                 this.onerror = null;
-                this.src = "/images/default-book.jpg";
+                this.src = DEFAULT_COVER;
             };
 
-            const title = document.createElement("h3");
-            title.textContent = book.title || "Untitled";
+            const title = createElement(
+                "h3",
+                "",
+                book.title || "Untitled"
+            );
 
-            const author = document.createElement("p");
-            author.className = "related-author";
-            author.textContent =
-                book.author || "Unknown Author";
+            const author = createElement(
+                "p",
+                "related-author",
+                book.author || "Unknown Author"
+            );
 
-            const price = document.createElement("p");
-            price.className = "related-price";
-            price.textContent =
-                `₹${Number(book.price || 0).toFixed(2)}`;
+            const price = createElement(
+                "p",
+                "related-price",
+                formatPrice(book.price)
+            );
 
-            card.append(image, title, author, price);
+            // Quick add to cart (does not open the book page)
+            const addBtn = createElement(
+                "button",
+                "related-add-btn",
+                "Add to cart"
+            );
+            addBtn.type = "button";
 
-            card.addEventListener("click", () => {
-                window.location.href =
-                    `/user/books/${encodeURIComponent(book._id)}`;
+            const stock = Number(book.stock);
+
+            if (Number.isFinite(stock) && stock <= 0) {
+                addBtn.disabled = true;
+                addBtn.textContent = "Out of stock";
+            }
+
+            addBtn.addEventListener("click", async event => {
+                event.stopPropagation();
+
+                addBtn.disabled = true;
+                addBtn.textContent = "Adding...";
+
+                let added = false;
+
+                try {
+                    await addBookToCart(book._id, 1);
+                    await refreshCartCount();
+
+                    added = true;
+                    addBtn.textContent = "Added ✓";
+
+                } catch (error) {
+                    console.error("Related add to cart error:", error);
+                    addBtn.textContent = "Try again";
+                }
+
+                await wait(1600);
+
+                addBtn.textContent = "Add to cart";
+                addBtn.disabled = false;
+
+                if (added) addBtn.blur();
+            });
+
+            const bottom = createElement("div", "related-bottom");
+            bottom.append(price, addBtn);
+
+            card.append(image, title, author, bottom);
+
+            card.addEventListener("click", openBook);
+
+            card.addEventListener("keydown", event => {
+                if (event.key === "Enter" && event.target === card) {
+                    openBook();
+                }
             });
 
             container.appendChild(card);
@@ -405,7 +602,9 @@ async function loadRelatedBooks(currentBook) {
     } catch (error) {
         console.error("Related books error:", error);
 
-        container.textContent =
-            "Unable to load suggested books.";
+        showNote("Unable to load suggested books.");
     }
 }
+
+// Initial navbar cart count
+refreshCartCount();

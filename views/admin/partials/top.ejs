@@ -3,70 +3,222 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5">
   <title><%= title %> | Admin Panel</title>
   <link rel="stylesheet" href="/css/admin-layout.css">
 </head>
 <body>
+<%
+  const adminName = (typeof admin !== "undefined" && admin && admin.name) ? admin.name : "Admin";
+%>
 <div class="admin-wrapper">
 
-  <aside class="sidebar">
+  <div class="sidebar-overlay" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="adminSidebar">
+
     <div class="brand">
       <span class="brand-mark">A</span>
-      <span class="brand-text">Admin Panel</span>
+      <span class="brand-copy">
+        <span class="brand-text">Admin Panel</span>
+        <span class="brand-sub">ChapterOne</span>
+      </span>
     </div>
 
-    <nav class="nav">
+    <nav class="nav" aria-label="Admin navigation">
+
+      <p class="nav-label">Main</p>
+
       <a href="/admin/dashboard" class="nav-link <%= active === 'dashboard' ? 'active' : '' %>">
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Dashboard Home</span>
       </a>
+
+      <p class="nav-label">Manage</p>
+
       <a href="/admin/users" class="nav-link <%= active === 'users' ? 'active' : '' %>">
         <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>User Management</span>
       </a>
+
       <a href="/admin/products" class="nav-link <%= active === 'products' ? 'active' : '' %>">
         <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
         <span>Product Management</span>
       </a>
-  
+
       <a href="/admin/orders" class="nav-link <%= active === 'orders' ? 'active' : '' %>">
         <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <span>Order Management</span>
       </a>
 
+      <p class="nav-label">Insights</p>
+
       <a href="/admin/overview" class="nav-link <%= active === 'overview' ? 'active' : '' %>">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        <span>overview</span>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-5 5"/></svg>
+        <span>Overview</span>
       </a>
-</nav>
 
+    </nav>
 
+    <div class="sidebar-footer">
 
-    <form action="/admin/logout" method="POST" class="logout-form">
-      <button type="submit" class="logout-btn">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Logout</span>
-      </button>
-    </form>
+      <a href="/user/home" target="_blank" rel="noopener" class="nav-link nav-link--ghost">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <span>View store</span>
+      </a>
+
+      <form action="/admin/logout" method="POST" class="logout-form">
+        <button type="submit" class="logout-btn">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Logout</span>
+        </button>
+      </form>
+
+    </div>
   </aside>
 
   <div class="admin-main">
-    <header class="topbar">
-      <h1 class="page-title"><%= title %></h1>
-      <div class="admin-info">
-      <span class="avatar">
-    <%= (typeof admin !== "undefined" && admin?.name)
-        ? admin.name.charAt(0).toUpperCase()
-        : "A" %>
-</span>
 
-<span class="admin-name">
-    <%= (typeof admin !== "undefined" && admin?.name)
-        ? admin.name
-        : "Admin" %>
-</span>
+    <header class="topbar">
+
+      <div class="topbar-left">
+        <button type="button" class="menu-toggle" aria-label="Open menu" aria-controls="adminSidebar" aria-expanded="false">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="page-heading">
+          <p class="crumb">Admin <span>/</span> <%= title %></p>
+          <h1 class="page-title"><%= title %></h1>
+        </div>
       </div>
+
+      <div class="topbar-right">
+        <span class="date-chip">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <%= new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %>
+        </span>
+
+        <div class="admin-info">
+          <span class="avatar"><%= adminName.charAt(0).toUpperCase() %></span>
+          <span class="admin-name"><%= adminName %></span>
+        </div>
+      </div>
+
     </header>
 
+    <script>
+      (function () {
+        var body = document.body;
+        var toggle = document.querySelector(".menu-toggle");
+        var overlay = document.querySelector(".sidebar-overlay");
+
+        function closeMenu() {
+          body.classList.remove("sidebar-open");
+          if (toggle) { toggle.setAttribute("aria-expanded", "false"); }
+        }
+
+        if (toggle) {
+          toggle.addEventListener("click", function () {
+            var open = body.classList.toggle("sidebar-open");
+            toggle.setAttribute("aria-expanded", open ? "true" : "false");
+          });
+        }
+
+        if (overlay) { overlay.addEventListener("click", closeMenu); }
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") { closeMenu(); }
+        });
+
+        window.addEventListener("resize", function () {
+          if (window.innerWidth > 900) { closeMenu(); }
+        });
+      })();
+    </script>
+
+    <script>
+      /* Table pages: avatar names, summary cards, card accent (users page) */
+      document.addEventListener("DOMContentLoaded", function () {
+        var table = null;
+        document.querySelectorAll(".admin-content table").forEach(function (t) {
+          var heads = Array.prototype.map.call(t.querySelectorAll("thead th"), function (th) {
+            return th.textContent.trim().toLowerCase();
+          });
+          if (heads.indexOf("email") > -1 && heads.indexOf("verified") > -1) { table = t; }
+        });
+        if (!table) { return; }
+
+        table.classList.add("users-table");
+        var content = document.querySelector(".admin-content");
+        var card = table;
+        while (card.parentElement && card.parentElement !== content) { card = card.parentElement; }
+        card.classList.add("data-card");
+
+        var ICONS = {
+          blue: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+          green: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/>',
+          red: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/>',
+          amber: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>'
+        };
+
+        var strip = document.createElement("section");
+        strip.className = "mini-stats";
+        [["", "Total users", "blue"], ["", "Active", "green"], ["", "Blocked", "red"], ["", "Verified", "amber"]]
+          .forEach(function (c, i) {
+            var box = document.createElement("div");
+            box.className = "mini-stat";
+            box.setAttribute("data-tone", c[2] === "blue" ? "" : c[2]);
+            box.innerHTML = '<span class="mini-stat-icon"><svg viewBox="0 0 24 24">' + ICONS[c[2]] +
+              '</svg></span><div><span class="mini-label">' + c[1] + '</span><strong data-i="' + i + '">0</strong></div>';
+            strip.appendChild(box);
+          });
+        content.insertBefore(strip, content.firstChild);
+
+        var pending = false;
+        function enhance() {
+          pending = false;
+          var rows = table.querySelectorAll("tbody tr");
+          var total = 0, blocked = 0, verified = 0, n = 0;
+
+          rows.forEach(function (row) {
+            var cells = row.children;
+            if (cells.length < 2 || row.querySelector("td.empty")) { return; }
+            total++;
+            var text = row.textContent.toLowerCase();
+            if (/blocked/.test(text)) { blocked++; }
+            if (/\bverified\b/.test(text) && !/unverified|not verified/.test(text)) { verified++; }
+
+            var first = cells[0];
+            if (!first.querySelector(".cell-person")) {
+              var name = first.textContent.trim();
+              var wrap = document.createElement("div");
+              wrap.className = "cell-person";
+              var av = document.createElement("span");
+              av.className = "user-avatar cell-avatar-" + (name.length % 5);
+              av.textContent = (name.charAt(0) || "?").toUpperCase();
+              var strong = document.createElement("strong");
+              strong.textContent = name;
+              wrap.appendChild(av);
+              wrap.appendChild(strong);
+              first.textContent = "";
+              first.appendChild(wrap);
+            }
+          });
+
+          var vals = [total, total - blocked, blocked, verified];
+          strip.querySelectorAll("strong").forEach(function (el) {
+            el.textContent = vals[Number(el.getAttribute("data-i"))];
+          });
+        }
+
+        function schedule() {
+          if (!pending) { pending = true; requestAnimationFrame(enhance); }
+        }
+
+        var body = table.querySelector("tbody");
+        if (body) { new MutationObserver(schedule).observe(body, { childList: true }); }
+        enhance();
+      });
+    </script>
 
     <main class="admin-content">

@@ -46,6 +46,21 @@ router.post("/api/orders/razorpay/verify",noCache,userAuth,checkBlocked,orderCon
 // ORDERS
 router.get("/orders", noCache, userAuth, checkBlocked, userController.getOrdersPage);
 router.get("/api/orders", noCache, userAuth, checkBlocked, orderController.getMyOrders);
+router.patch(
+    "/api/orders/:orderId/cancel",
+    (req, res, next) => {
+       console.log("🔥 CANCEL ROUTE HIT 🔥");
+console.log("Order ID:", req.params.orderId);
+console.log("User ID:", req.user?._id);
+        next();
+    },
+    noCache,
+    userAuth,
+    checkBlocked,
+    orderController.cancelOrder
+);
+
+
 
 // ACCOUNT
 router.get("/account", noCache, userAuth, checkBlocked, userController.getAccount);

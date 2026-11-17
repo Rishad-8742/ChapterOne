@@ -245,22 +245,88 @@ function renderProducts() {
         const row = document.createElement("tr");
         const stock = Number(book.stock || 0);
 
+        // BOOK CELL: cover thumbnail + title + author
         const titleCell = document.createElement("td");
-        titleCell.textContent = book.title || "-";
 
+        const bookCell = document.createElement("div");
+        bookCell.className = "book-cell";
+
+        const thumb = document.createElement("div");
+        thumb.className = "book-thumb";
+
+        const initial = String(book.title || "?")
+            .trim()
+            .charAt(0)
+            .toUpperCase();
+
+        if (book.image) {
+            const img = document.createElement("img");
+            img.src = book.image;
+            img.alt = "";
+            img.loading = "lazy";
+
+            img.addEventListener("error", () => {
+                img.remove();
+                thumb.textContent = initial;
+            });
+
+            thumb.appendChild(img);
+        } else {
+            thumb.textContent = initial;
+        }
+
+        const info = document.createElement("div");
+        info.className = "book-info";
+
+        const titleEl = document.createElement("strong");
+        titleEl.textContent = book.title || "-";
+        titleEl.title = book.title || "";
+
+        const authorEl = document.createElement("span");
+        authorEl.textContent = book.author || "";
+
+        info.append(titleEl, authorEl);
+        bookCell.append(thumb, info);
+        titleCell.appendChild(bookCell);
+
+        // LANGUAGE CHIP
         const languageCell = document.createElement("td");
-        languageCell.textContent = book.language || "-";
+        const languageChip = document.createElement("span");
+        languageChip.className = "chip chip-lang";
+        languageChip.textContent = book.language || "-";
+        languageCell.appendChild(languageChip);
 
+        // GENRE CHIP
         const genreCell = document.createElement("td");
-        genreCell.textContent = book.genre || "-";
+        const genreChip = document.createElement("span");
+        genreChip.className = "chip chip-genre";
+        genreChip.textContent = book.genre || "-";
+        genreCell.appendChild(genreChip);
 
+        // PRICE
         const priceCell = document.createElement("td");
+        priceCell.className = "price-cell";
         priceCell.textContent =
             `₹${Number(book.price || 0).toFixed(2)}`;
 
+        // STOCK BADGE
         const stockCell = document.createElement("td");
-        stockCell.textContent = String(stock);
+        const stockBadge = document.createElement("span");
 
+        if (stock <= 0) {
+            stockBadge.className = "stock-badge stock-out";
+            stockBadge.textContent = "Out of stock";
+        } else if (stock <= 5) {
+            stockBadge.className = "stock-badge stock-low";
+            stockBadge.textContent = `Only ${stock} left`;
+        } else {
+            stockBadge.className = "stock-badge stock-in";
+            stockBadge.textContent = `${stock} in stock`;
+        }
+
+        stockCell.appendChild(stockBadge);
+
+        // ACTIONS
         const actionCell = document.createElement("td");
         const actions = document.createElement("div");
 
@@ -600,6 +666,26 @@ function closeModal() {
 
     modalTitle.textContent = "Add Book";
 }
+
+// EXTRA WAYS TO CLOSE THE MODAL
+
+document.getElementById("pmClose").addEventListener("click", closeModal);
+
+productModal.addEventListener("click", event => {
+    // only when the dark backdrop itself is clicked
+    if (event.target === productModal) {
+        closeModal();
+    }
+});
+
+document.addEventListener("keydown", event => {
+    if (
+        event.key === "Escape" &&
+        productModal.style.display === "flex"
+    ) {
+        closeModal();
+    }
+});
 
 // TOAST
 

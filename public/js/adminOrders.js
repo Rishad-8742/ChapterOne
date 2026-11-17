@@ -6,10 +6,14 @@ const statusFilter = document.querySelector("#statusFilter");
 const refreshOrdersBtn = document.querySelector("#refreshOrders");
 
 const pageMessage = document.querySelector("#pageMessage");
+const modalMessage = document.querySelector("#modalMessage");
 const orderDetails = document.querySelector("#orderDetails");
 const detailsTitle = document.querySelector("#detailsTitle");
+const detailsDate = document.querySelector("#detailsDate");
+const detailsBadge = document.querySelector("#detailsBadge");
 const detailsContent = document.querySelector("#detailsContent");
 const closeDetailsBtn = document.querySelector("#closeDetails");
+const closeDetailsFooterBtn = document.querySelector("#closeDetailsFooter");
 
 const newOrderStatus = document.querySelector("#newOrderStatus");
 const updateStatusBtn = document.querySelector("#updateStatusBtn");
@@ -90,14 +94,75 @@ function statusClass(status) {
         : "status-pending";
 }
 
+function statusKey(status) {
+    const allowed = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
+    const key = String(status || "PENDING").toLowerCase();
+
+    return allowed.includes(key) ? key : "pending";
+}
+
+// Message banner inside the modal for each status
+const STATUS_BANNERS = {
+    pending: {
+        title: "Order pending",
+        text: "This order is waiting to be confirmed.",
+        icon: "clock"
+    },
+    confirmed: {
+        title: "Order confirmed",
+        text: "This order is confirmed and being prepared.",
+        icon: "check"
+    },
+    shipped: {
+        title: "Order shipped",
+        text: "This order is on its way to the customer.",
+        icon: "truck"
+    },
+    delivered: {
+        title: "Order delivered",
+        text: "This order has been delivered to the customer.",
+        icon: "check"
+    },
+    cancelled: {
+        title: "Order cancelled",
+        text: "This order was cancelled and won't be delivered.",
+        icon: "x"
+    }
+};
+
+const ICONS = {
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    truck: '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    items: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+    home: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',
+    card: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 5-5 8-5s6.5 1 8 5"/>',
+    receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>'
+};
+
+function icon(name, size = 14) {
+    return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+}
+
 function showMessage(message, type = "success") {
     pageMessage.textContent = message;
     pageMessage.className = `message ${type}`;
+
+    // The modal covers the page message, so show it inside the modal too
+    if (!orderDetails.hidden) {
+        modalMessage.textContent = message;
+        modalMessage.className = `message ${type}`;
+    }
 }
 
 function clearMessage() {
     pageMessage.textContent = "";
     pageMessage.className = "message";
+
+    modalMessage.textContent = "";
+    modalMessage.className = "message";
 }
 
 async function sendRequest(url, options = {}) {
@@ -312,25 +377,60 @@ statusFilter.addEventListener("change", renderOrders);
 refreshOrdersBtn.addEventListener("click", loadOrders);
 
 // --------------------
+// MODAL OPEN / CLOSE
+// --------------------
+
+function openModal() {
+    orderDetails.hidden = false;
+    document.body.classList.add("modal-open");
+}
+
+function closeDetails() {
+    selectedOrderId = null;
+    orderDetails.hidden = true;
+    document.body.classList.remove("modal-open");
+
+    detailsContent.innerHTML = "";
+    modalMessage.textContent = "";
+    modalMessage.className = "message";
+}
+
+closeDetailsBtn.addEventListener("click", closeDetails);
+closeDetailsFooterBtn.addEventListener("click", closeDetails);
+
+orderDetails.addEventListener("click", event => {
+    if (event.target.closest("[data-close-modal]")) {
+        closeDetails();
+    }
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !orderDetails.hidden) {
+        closeDetails();
+    }
+});
+
+// --------------------
 // LOAD ONE ORDER
 // --------------------
 
-async function loadOrderDetails(id, scroll = true) {
+async function loadOrderDetails(id, firstOpen = true) {
     clearMessage();
 
-    detailsContent.innerHTML = `
-        <p class="table-message">Loading order details...</p>
-    `;
-
-    orderDetails.hidden = false;
     selectedOrderId = id;
 
-    if (scroll) {
-        orderDetails.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+    if (firstOpen) {
+        detailsTitle.textContent = "Loading...";
+        detailsDate.textContent = "";
+        detailsBadge.textContent = "";
+        detailsBadge.removeAttribute("data-status");
+
+        detailsContent.innerHTML = `
+            <p class="table-message">Loading order details...</p>
+        `;
     }
+
+    openModal();
 
     try {
         const data = await sendRequest(
@@ -361,6 +461,23 @@ ordersBody.addEventListener("click", event => {
 // RENDER ORDER DETAILS
 // --------------------
 
+// Adjust these field names if your Book schema uses different ones
+function itemImage(item) {
+    const image =
+        item.image ||
+        item.coverImage ||
+        item.book?.image ||
+        item.book?.coverImage ||
+        item.book?.images?.[0]?.url ||
+        item.book?.images?.[0];
+
+    return typeof image === "string" ? image : "";
+}
+
+function itemAuthor(item) {
+    return item.author || item.book?.author || "";
+}
+
 function renderOrderDetails(order) {
     if (!order) {
         return;
@@ -369,12 +486,23 @@ function renderOrderDetails(order) {
     const user = order.user || {};
     const shipping = order.shippingAddress || {};
     const items = Array.isArray(order.items) ? order.items : [];
+    const key = statusKey(order.orderStatus);
+    const banner = STATUS_BANNERS[key];
 
+    // Header
     detailsTitle.textContent =
         `Order #${String(order._id).slice(-8).toUpperCase()}`;
 
+    detailsDate.textContent = `Placed on ${formatDate(order.createdAt)}`;
+
+    detailsBadge.textContent = statusLabel(order.orderStatus);
+    detailsBadge.dataset.status = key;
+
+    // Items
     const itemsHTML = items.map(item => {
         const title = item.title || item.book?.title || "Book";
+        const author = itemAuthor(item);
+        const image = itemImage(item);
         const quantity = Number(item.quantity) || 0;
         const price = Number(item.price) || 0;
 
@@ -383,119 +511,110 @@ function renderOrderDetails(order) {
             : price * quantity;
 
         return `
-            <tr>
-                <td>${escapeHTML(title)}</td>
-                <td>${quantity}</td>
-                <td>${formatPrice(price)}</td>
-                <td>${formatPrice(subtotal)}</td>
-            </tr>
+            <div class="order-item">
+                <div class="order-item__thumb">
+                    ${image
+                        ? `<img src="${escapeHTML(image)}" alt="" loading="lazy">`
+                        : icon("items", 18)}
+                </div>
+
+                <div class="order-item__info">
+                    <strong>${escapeHTML(title)}</strong>
+                    ${author ? `<span>${escapeHTML(author)}</span>` : ""}
+                    <span>Qty ${quantity} × ${formatPrice(price)}</span>
+                </div>
+
+                <div class="order-item__total">${formatPrice(subtotal)}</div>
+            </div>
         `;
     }).join("");
 
     detailsContent.innerHTML = `
-        <div class="details-grid">
-            <div class="detail-box">
-                <h3>Customer Information</h3>
+        <div class="status-banner status-banner--${key}">
+            <span class="status-banner__icon">${icon(banner.icon, 20)}</span>
+            <div>
+                <strong>${banner.title}</strong>
+                <p>${banner.text}</p>
+            </div>
+        </div>
 
-                <p>
-                    <strong>Name:</strong>
-                    ${escapeHTML(user.userName || "Unavailable")}
-                </p>
-
-                <p>
-                    <strong>Email:</strong>
-                    ${escapeHTML(user.userEmail || "Unavailable")}
-                </p>
-
-                <p>
-                    <strong>Order date:</strong>
-                    ${escapeHTML(formatDate(order.createdAt))}
-                </p>
+        <section class="modal-card">
+            <div class="modal-card__title">
+                <span class="modal-icon">${icon("items")}</span>
+                Items
             </div>
 
-            <div class="detail-box">
-                <h3>Shipping Address</h3>
+            ${itemsHTML || `<p class="modal-muted">No item details available.</p>`}
+        </section>
 
-                <p><strong>${escapeHTML(shipping.fullName || "N/A")}</strong></p>
+        <div class="modal-grid">
+            <section class="modal-card">
+                <div class="modal-card__title">
+                    <span class="modal-icon">${icon("home")}</span>
+                    Delivery address
+                </div>
 
-                <p>${escapeHTML(shipping.phone || "")}</p>
-
+                <p class="modal-strong">${escapeHTML(shipping.fullName || "N/A")}</p>
                 <p>${escapeHTML(shipping.address || "Address unavailable")}</p>
-
                 <p>
-                    ${escapeHTML(shipping.city || "")}
-                    ${shipping.pincode
+                    ${escapeHTML(shipping.city || "")}${shipping.pincode
                         ? ` - ${escapeHTML(shipping.pincode)}`
                         : ""}
                 </p>
-            </div>
+                ${shipping.phone
+                    ? `<p class="modal-muted">Phone: ${escapeHTML(shipping.phone)}</p>`
+                    : ""}
+            </section>
 
-            <div class="detail-box">
-                <h3>Payment Information</h3>
+            <section class="modal-card">
+                <div class="modal-card__title">
+                    <span class="modal-icon">${icon("card")}</span>
+                    Payment
+                </div>
 
-                <p>
-                    <strong>Method:</strong>
-                    ${escapeHTML(order.paymentMethod || "N/A")}
+                <p class="modal-strong">${escapeHTML(order.paymentMethod || "N/A")}</p>
+                <p class="modal-muted">
+                    Status: ${escapeHTML(statusLabel(order.paymentStatus || "N/A"))}
                 </p>
-
-                <p>
-                    <strong>Payment status:</strong>
-                    ${escapeHTML(order.paymentStatus || "N/A")}
-                </p>
-
-                <p>
-                    <strong>Subtotal:</strong>
-                    ${formatPrice(order.subtotal)}
-                </p>
-
-                <p>
-                    <strong>Delivery fee:</strong>
-                    ${formatPrice(order.deliveryFee)}
-                </p>
-
-                <p>
-                    <strong>Total:</strong>
-                    ${formatPrice(order.totalAmount)}
-                </p>
-            </div>
-
-            <div class="detail-box">
-                <h3>Current Delivery Status</h3>
-
-                <p>
-                    <span class="status-badge ${statusClass(order.orderStatus)}">
-                        ${escapeHTML(statusLabel(order.orderStatus))}
-                    </span>
-                </p>
-            </div>
+            </section>
         </div>
 
-        <div class="detail-box">
-            <h3>Purchased Books</h3>
+        <div class="modal-grid">
+            <section class="modal-card">
+                <div class="modal-card__title">
+                    <span class="modal-icon">${icon("user")}</span>
+                    Customer
+                </div>
 
-            <div class="table-wrapper">
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th>Book</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
+                <p class="modal-strong">${escapeHTML(user.userName || "Unavailable")}</p>
+                <p class="modal-muted">${escapeHTML(user.userEmail || "Unavailable")}</p>
+            </section>
 
-                    <tbody>
-                        ${itemsHTML || `
-                            <tr>
-                                <td colspan="4">No item details available.</td>
-                            </tr>
-                        `}
-                    </tbody>
-                </table>
-            </div>
+            <section class="modal-card">
+                <div class="modal-card__title">
+                    <span class="modal-icon">${icon("receipt")}</span>
+                    Summary
+                </div>
+
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>${formatPrice(order.subtotal)}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>Delivery fee</span>
+                    <span>${formatPrice(order.deliveryFee)}</span>
+                </div>
+
+                <div class="summary-row summary-row--total">
+                    <span>Total</span>
+                    <span>${formatPrice(order.totalAmount)}</span>
+                </div>
+            </section>
         </div>
     `;
 
+    // Status controls
     newOrderStatus.value = order.orderStatus || "PENDING";
 
     const isTerminal = ["DELIVERED", "CANCELLED"].includes(
@@ -509,18 +628,6 @@ function renderOrderDetails(order) {
         ? "Order Closed"
         : "Update Status";
 }
-
-// --------------------
-// CLOSE DETAILS
-// --------------------
-
-function closeDetails() {
-    selectedOrderId = null;
-    orderDetails.hidden = true;
-    detailsContent.innerHTML = "";
-}
-
-closeDetailsBtn.addEventListener("click", closeDetails);
 
 // --------------------
 // UPDATE ORDER STATUS
@@ -571,9 +678,9 @@ updateStatusBtn.addEventListener("click", async () => {
             }
         );
 
-        showMessage(data.message || "Order status updated.");
-
         await loadOrders();
+
+        showMessage(data.message || "Order status updated.");
     } catch (error) {
         showMessage(error.message, "error");
 
@@ -581,11 +688,18 @@ updateStatusBtn.addEventListener("click", async () => {
     } finally {
         updatingStatus = false;
 
-        if (!["DELIVERED", "CANCELLED"].includes(order.orderStatus)) {
-            updateStatusBtn.disabled = false;
-        }
+        const current = allOrders.find(
+            item => item._id === selectedOrderId
+        );
 
-        updateStatusBtn.textContent = "Update Status";
+        const closed = current
+            ? ["DELIVERED", "CANCELLED"].includes(current.orderStatus)
+            : false;
+
+        updateStatusBtn.disabled = closed;
+        updateStatusBtn.textContent = closed
+            ? "Order Closed"
+            : "Update Status";
     }
 });
 

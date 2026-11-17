@@ -1,159 +1,90 @@
+<%- include('partials/top', {
+    title: 'Checkout Page',
+    active: 'Checkout',
+    pageCss: '/css/checkout.css'
+}) %>
+   <main class="checkout-container">
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <ol class="checkout-steps">
+        <li class="is-done"><span class="step-num">&#10003;</span><a href="/user/cart">Cart</a></li>
+        <li class="is-current"><span class="step-num">2</span>Checkout</li>
+        <li><span class="step-num">3</span>Done</li>
+    </ol>
 
-    <title>Checkout | ChapterOne</title>
-
-    <link rel="stylesheet" href="/css/checkout.css">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="/js/checkout.js" defer></script>
-</head>
-<body>
-
-    <header class="navbar">
-        <a href="/user/home" class="logo">
-            <span class="logo-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff"
-                     stroke-width="1.8" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <path d="M12 6.5C10.3 5.3 8 4.8 4 5v12c4-.2 6.3.3 8 1.5"/>
-                    <path d="M12 6.5c1.7-1.2 4-1.7 8-1.5v12c-4-.2-6.3.3-8 1.5"/>
-                    <path d="M12 6.5v12"/>
-                </svg>
-            </span>
-
-            <span class="logo-text">ChapterOne</span>
-        </a>
-
-        <nav class="navigation">
-            <a href="/user/home" class="nav-link">Home</a>
-            <a href="/user/books" class="nav-link">Books</a>
-
-            <a href="/user/cart" class="nav-link active">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="1.7">
-                        <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"/>
-                        <circle cx="10" cy="20" r="1"/>
-                        <circle cx="18" cy="20" r="1"/>
-                    </svg>
-                </span>
-                Cart
-            </a>
-
-            <a href="/user/account" class="nav-link nav-icon-link">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="1.7">
-                        <circle cx="12" cy="8" r="3.2"/>
-                        <path d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"/>
-                    </svg>
-                </span>
-                Account
-            </a>
-
-            <a href="/user/logout" class="nav-link nav-icon-link"
-               aria-label="Logout">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="1.7">
-                        <path d="M10 5H5v14h5"/>
-                        <path d="M14 8l4 4-4 4"/>
-                        <path d="M8 12h10"/>
-                    </svg>
-                </span>
-            </a>
-        </nav>
+    <header class="page-heading">
+        <h1>Complete your order</h1>
+        <p>Almost there. Choose where to deliver your books.</p>
     </header>
 
-    <main class="checkout-container">
-
-        <div class="page-heading">
-            <p class="eyebrow">CHAPTERONE / CHECKOUT</p>
-            <h1>Complete your order</h1>
-            <p>Almost there. Tell us where to deliver your books.</p>
-        </div>
-
-        <div id="checkoutMessage" class="message" role="alert"></div>
-
-        <!-- Single checkout grid -->
+    <form id="checkoutForm" novalidate>
         <div class="checkout-layout">
 
-            <!-- LEFT: SHIPPING AND PAYMENT -->
-            <section class="checkout-card shipping-card">
+            <!-- LEFT: address + payment -->
+            <div class="checkout-card">
 
-                <h2>Shipping details</h2>
-
-                <form id="checkoutForm">
-
-                    <div class="form-group saved-address-group">
-                        <label for="savedAddressSelect">
-                            Choose a saved address
-                        </label>
-
-                        <select id="savedAddressSelect" required>
-                            <option value="">Loading saved addresses...</option>
-                        </select>
-
-                        <p id="addressLoadMessage" role="status"></p>
-
-                        <a href="/user/address" id="addAddressLink" hidden>
-                            + Add an address
-                        </a>
+                <section class="checkout-section">
+                    <div class="section-head">
+                        <h2><span class="section-num">1</span>Shipping details</h2>
+                        <a id="addAddressLink" class="section-link" href="/user/account">Manage addresses</a>
                     </div>
 
-                    <h2 class="payment-heading">Payment method</h2>
+                    <select id="savedAddressSelect" hidden>
+                        <option value="">Loading saved addresses...</option>
+                    </select>
+
+                    <div id="addressOptions" class="address-options">
+                        <p class="address-loading">Loading your saved addresses...</p>
+                    </div>
+
+                    <p id="addressLoadMessage" class="address-note"></p>
+                </section>
+
+                <section class="checkout-section">
+                    <div class="section-head">
+                        <h2><span class="section-num">2</span>Payment method</h2>
+                    </div>
 
                     <label class="payment-option">
-                        <input type="radio" name="paymentMethod"
-                               value="COD" checked>
-                        <span>
+                        <input type="radio" name="paymentMethod" value="COD" checked>
+                        <span class="payment-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+                        </span>
+                        <span class="payment-text">
                             <strong>Cash on Delivery</strong>
                             <small>Pay when your books arrive.</small>
                         </span>
                     </label>
 
-                    
                     <label class="payment-option">
-                        <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="RAZORPAY"
-                            >
-                    <span>
-                    <strong>Online Payment</strong>
-                    <small>Pay securely using Razorpay</small>
-                    </span>
+                        <input type="radio" name="paymentMethod" value="RAZORPAY">
+                        <span class="payment-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                        </span>
+                        <span class="payment-text">
+                            <strong>Online Payment</strong>
+                            <small>Pay securely using Razorpay.</small>
+                        </span>
                     </label>
+                </section>
+            </div>
 
-
-                    <button type="submit" id="placeOrderBtn"
-                            class="place-order-btn">
-                        Place Order
-                    </button>
-
-                    <a href="/user/cart" class="back-link">
-                        ← Return to cart
-                    </a>
-
-                </form>
-            </section>
-
-            <!-- RIGHT: ORDER SUMMARY -->
+            <!-- RIGHT: order summary -->
             <aside class="checkout-card order-card">
-
-                <h2>Your order</h2>
+                <div class="order-head">
+                    <h2>Your order</h2>
+                    <div class="order-meta">
+                        <span id="checkoutItemCount"></span>
+                        <a href="/user/cart">Edit cart</a>
+                    </div>
+                </div>
 
                 <div id="checkoutItems" class="checkout-items">
-                    <p>Loading your books...</p>
+                    <p class="checkout-loading">Loading your books...</p>
                 </div>
 
                 <div class="summary-line">
                     <span>Subtotal</span>
-                    <span id="checkoutSubtotal">₹0.00</span>
+                    <span id="checkoutSubtotal">&#8377;0.00</span>
                 </div>
 
                 <div class="summary-line">
@@ -163,17 +94,27 @@
 
                 <div class="summary-line total-line">
                     <strong>Total</strong>
-                    <strong id="checkoutTotal">₹0.00</strong>
+                    <strong id="checkoutTotal">&#8377;0.00</strong>
                 </div>
 
-                <p class="secure-note">
-                    Your order total is calculated using current book prices.
-                </p>
+                <div id="checkoutMessage" class="message" role="status" aria-live="polite"></div>
 
+                <button type="submit" id="placeOrderBtn" class="place-order-btn" disabled>Place order</button>
+
+                <p class="secure-note">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <span>Your order and payment details are processed securely.</span>
+                </p>
             </aside>
 
         </div>
-    </main>
+    </form>
+</main>
 
-</body>
-</html>
+<!-- Razorpay SDK must load BEFORE checkout.js -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="/js/checkout.js"></script>
+<%- include('partials/bottom', {
+    pageScript: '/js/checkout.js'
+}) %>
+

@@ -1,4 +1,3 @@
-
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -21,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
         address: document.getElementById("addressText"),
         isDefault: document.getElementById("addressDefault")
     };
+
+    const ADDRESS_ICONS = { Home: "⌂", Work: "▤", Other: "◈" };
 
     let addresses = [];
 
@@ -55,15 +56,38 @@ document.addEventListener("DOMContentLoaded", () => {
         return node;
     }
 
-    function button(text, action) {
-        const node = element("button", "secondary-button", text);
+    // modifier: "" | "addr-btn--danger" | "addr-btn--primary"
+    function button(text, action, modifier = "") {
+        const node = element("button", `addr-btn ${modifier}`.trim(), text);
         node.type = "button";
         node.addEventListener("click", action);
         return node;
     }
 
+    function formatPhone(phone) {
+        const digits = String(phone || "").replace(/\D/g, "");
+
+        return digits.length === 10
+            ? `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`
+            : String(phone || "");
+    }
+
+    // One labelled row: Name / Phone / Address / City / PIN code
+    function detailRow(label, value, modifier = "") {
+        const row = element("div", `addr-row ${modifier}`.trim());
+
+        row.append(
+            element("dt", "", label),
+            element("dd", "", value || "—")
+        );
+
+        return row;
+    }
+
     async function loadAddresses() {
-        list.textContent = "Loading your addresses...";
+        list.replaceChildren(
+            element("p", "addr-empty", "Loading your addresses...")
+        );
 
         try {
             const data = await apiRequest("/user/api/account");
@@ -72,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Load addresses error:", error);
             list.replaceChildren(
-                element("p", "empty-state", error.message)
+                element("p", "addr-empty", error.message)
             );
         }
     }
@@ -82,48 +106,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!addresses.length) {
             list.append(
-                element("p", "empty-state", "You haven't saved an address yet.")
+                element("p", "addr-empty", "You haven't saved an address yet.")
             );
             return;
         }
 
         addresses.forEach((address) => {
-            const card = element("article", "address-card");
+            const label = address.label || "Address";
 
-            const heading = element(
-                "h3",
-                "",
-                `${address.label || "Address"}${address.isDefault ? " — Default" : ""}`
+            const card = element(
+                "article",
+                `addr-card${address.isDefault ? " is-default" : ""}`
+            );
+            card.dataset.id = address._id || "";
+
+            // Header: type + default badge
+            const head = element("header", "addr-head");
+            const tag = element("span", "addr-tag");
+            const icon = element("span", "addr-tag-icon", ADDRESS_ICONS[label] || "⌂");
+
+            icon.setAttribute("aria-hidden", "true");
+            tag.append(icon, document.createTextNode(label));
+            head.append(tag);
+
+            if (address.isDefault) {
+                head.append(element("span", "addr-badge", "Default"));
+            }
+
+            // Details in a fixed order
+            const details = element("dl", "addr-details");
+
+            details.append(
+                detailRow("Name", address.fullName, "addr-row--name"),
+                detailRow("Phone", formatPhone(address.phone)),
+                detailRow("Address", address.address, "addr-row--address"),
+                detailRow("City", address.city),
+                detailRow("PIN code", address.pincode)
             );
 
-            const details = element(
-                "p",
-                "address-details",
-                [
-                    address.fullName,
-                    address.phone,
-                    address.address,
-                    `${address.city || ""} ${address.pincode || ""}`.trim()
-                ].filter(Boolean).join("\n")
-            );
-
-            details.style.whiteSpace = "pre-line";
-            card.append(heading, details);
-
-            const actions = element("div", "address-actions");
+            // Actions
+            const actions = element("footer", "addr-actions");
 
             actions.append(
                 button("Edit", () => editAddress(address)),
-                button("Delete", () => deleteAddress(address._id))
+                button("Delete", () => deleteAddress(address._id), "addr-btn--danger")
             );
 
             if (!address.isDefault) {
                 actions.append(
-                    button("Set as default", () => setDefault(address._id))
+                    button(
+                        "Set as default",
+                        () => setDefault(address._id),
+                        "addr-btn--primary"
+                    )
                 );
             }
 
-            card.append(actions);
+            card.append(head, details, actions);
             list.append(card);
         });
     }

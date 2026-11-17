@@ -1,87 +1,189 @@
 <%- include('partials/top', { title: 'Dashboard Home', active: 'dashboard' }) %>
 
+<%
+  const total = Number(stats.totalUsers) || 0;
+  const blocked = Number(stats.blockedUsers) || 0;
+  const active = Math.max(total - blocked, 0);
+  const activePct = total ? Math.round((active / total) * 100) : 0;
+  const blockedPct = total ? 100 - activePct : 0;
+
+  const adminName = (typeof admin !== "undefined" && admin && admin.name) ? admin.name : "Admin";
+  const firstName = String(adminName).split(" ")[0];
+%>
+
+<!-- Welcome banner -->
+<section class="hero">
+  <div class="hero-copy">
+    <p class="hero-eyebrow">
+      <%= new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }) %>
+    </p>
+    <h2>Welcome back, <%= firstName %></h2>
+    <p>Here is a quick look at your store. Manage your books, orders and customers from one place.</p>
+  </div>
+
+  <div class="hero-actions">
+    <a href="/admin/products" class="hero-btn">Manage books</a>
+    <a href="/admin/orders" class="hero-btn hero-btn--ghost">View orders</a>
+  </div>
+</section>
+
+<!-- Stats -->
 <section class="stats-grid">
-  <div class="stat-card">
+
+  <div class="stat-card" data-tone="blue">
     <div class="stat-icon blue">
       <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     </div>
     <div class="stat-info">
       <span class="stat-label">Total Users</span>
-      <strong class="stat-value"><%= stats.totalUsers %></strong>
+      <strong class="stat-value"><%= total %></strong>
+      <span class="stat-meter"><i style="width: 100%"></i></span>
     </div>
   </div>
 
-  <div class="stat-card">
+  <div class="stat-card" data-tone="green">
     <div class="stat-icon green">
       <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
     </div>
     <div class="stat-info">
       <span class="stat-label">Active Users</span>
-      <strong class="stat-value"><%= stats.totalUsers - stats.blockedUsers %></strong>
+      <strong class="stat-value"><%= active %></strong>
+      <span class="stat-meter"><i style="width: <%= activePct %>%"></i></span>
     </div>
   </div>
 
-  <div class="stat-card">
+  <div class="stat-card" data-tone="red">
     <div class="stat-icon red">
       <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
     </div>
     <div class="stat-info">
       <span class="stat-label">Blocked Users</span>
-      <strong class="stat-value"><%= stats.blockedUsers %></strong>
+      <strong class="stat-value"><%= blocked %></strong>
+      <span class="stat-meter"><i style="width: <%= blockedPct %>%"></i></span>
     </div>
   </div>
 
- 
-</section>
-
-<section class="panel">
-  <div class="panel-header">
-    <h2>Recent Signups</h2>
-    <a href="/admin/users" class="panel-link">View all</a>
+  <div class="stat-card" data-tone="amber">
+    <div class="stat-icon amber">
+      <svg class="icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Active Rate</span>
+      <strong class="stat-value"><%= activePct %>%</strong>
+      <span class="stat-meter"><i style="width: <%= activePct %>%"></i></span>
+    </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (recentUsers.length === 0) { %>
-          <tr><td colspan="3" class="empty">No users yet</td></tr>
-        <% } %>
-        <% recentUsers.forEach(user => { %>
+</section>
+
+<div class="dashboard-grid">
+
+  <!-- Recent signups -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Recent Signups</h2>
+      <a href="/admin/users" class="panel-link">View all</a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
           <tr>
-            <td><%= user.userName %></td>
-            <td><%= user.userEmail %></td>
-            <td>
-              <span class="badge <%= user.isBlocked ? 'blocked' : 'active' %>">
-                <%= user.isBlocked ? 'Blocked' : 'Active' %>
-              </span>
-            </td>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-</section>
+        </thead>
+        <tbody>
+          <% if (recentUsers.length === 0) { %>
+            <tr><td colspan="3" class="empty">No users yet</td></tr>
+          <% } %>
+          <% recentUsers.forEach(user => { %>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <span class="user-avatar"><%= String(user.userName || "?").charAt(0).toUpperCase() %></span>
+                  <strong><%= user.userName %></strong>
+                </div>
+              </td>
+              <td class="cell-muted"><%= user.userEmail %></td>
+              <td>
+                <span class="badge <%= user.isBlocked ? 'blocked' : 'active' %>">
+                  <%= user.isBlocked ? 'Blocked' : 'Active' %>
+                </span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-<section class="quick-links">
-  <a href="/admin/users" class="link-card">
-    <h3>User Management</h3>
-    <p>View, search and block users</p>
-  </a>
-  <a href="/admin/products" class="link-card">
-    <h3>Product Management</h3>
-    <p>Add and manage your products</p>
-  </a>
-  <a href="/admin/orders" class="link-card">
-    <h3>Order Management</h3>
-    <p>Manage your orders</p>
-  </a>
-</section>
+  <div class="side-stack">
+
+    <!-- User breakdown -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>User Breakdown</h2>
+      </div>
+
+      <div class="breakdown">
+        <div class="donut <%= total ? '' : 'donut--empty' %>" style="--active: <%= activePct %>">
+          <div class="donut-center">
+            <strong><%= total %></strong>
+            <span>users</span>
+          </div>
+        </div>
+
+        <ul class="legend">
+          <li><i class="dot dot--green"></i> Active <b><%= active %></b></li>
+          <li><i class="dot dot--red"></i> Blocked <b><%= blocked %></b></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Shortcuts -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Shortcuts</h2>
+      </div>
+
+      <div class="quick-links quick-links--stack">
+
+        <a href="/admin/users" class="link-card">
+          <span class="link-icon">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </span>
+          <span class="link-text">
+            <h3>User Management</h3>
+            <p>View, search and block users</p>
+          </span>
+        </a>
+
+        <a href="/admin/products" class="link-card">
+          <span class="link-icon">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg>
+          </span>
+          <span class="link-text">
+            <h3>Product Management</h3>
+            <p>Add and manage your products</p>
+          </span>
+        </a>
+
+        <a href="/admin/orders" class="link-card">
+          <span class="link-icon">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+          </span>
+          <span class="link-text">
+            <h3>Order Management</h3>
+            <p>Manage your orders</p>
+          </span>
+        </a>
+
+      </div>
+    </section>
+
+  </div>
+</div>
 
 <%- include('partials/bottom') %>

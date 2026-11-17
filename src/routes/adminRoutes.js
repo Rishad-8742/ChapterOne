@@ -53,6 +53,6 @@ router.get("/overview",adminAuth,
 
 router.get("/api/analytics",adminAuth,adminAnalyticsController.getAnalytics);
 
-router.get("/logout", noCache, adminController.postLogout);
+router.post("/logout", noCache, adminController.postLogout);
 
 module.exports = router;

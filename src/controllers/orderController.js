@@ -104,12 +104,6 @@ exports.createCodOrder = async (req, res) => {
             });
         }
 
-        if (paymentMethod !== "COD") {
-            return res.status(400).json({
-                success: false,
-                message: "This endpoint currently supports COD only."
-            });
-        }
 
         // Read the user's session cart
         const cart = req.user.cart || [];
@@ -319,7 +313,7 @@ exports.createRazorpayOrder = async (req, res) => {
         const cart = req.user.cart || [];
 
         if (!cart.length) {
-            return res.status(400).json({
+            return res.status(40590).json({
                 success: false,
                 message: "Your cart is empty."
             });
@@ -704,5 +698,212 @@ exports.getMyOrders = async (req, res) => {
             success: false,
             message: "Unable to load your orders."
         });
+    }
+};
+
+exports.cancelOrder = async (req, res) => {
+    let session;
+
+    try {
+        console.log("🔥 CANCEL ORDER CONTROLLER HIT 🔥");
+        const userId = req.user._id;
+        const orderId = req.params.orderId;
+
+        // 1. Validate order ID
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid order ID."
+            });
+        }
+
+        // 2. Find the customer's order
+        const order = await Order.findOne({
+            _id: orderId,
+            user: userId
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found."
+            });
+        }
+        console.log("========== CANCELLATION DEBUG ==========");
+console.log("Logged-in user:", String(userId));
+console.log("Order user:", String(order.user));
+console.log("Payment method:", order.paymentMethod);
+console.log("Order status:", order.orderStatus);
+console.log("Cancellation status:", order.cancellationStatus);
+console.log("Stock restored:", order.stockRestored);
+
+        // 3. Check order status
+        if (order.orderStatus === "CANCELLED") {
+            return res.status(400).json({
+                success: false,
+                message: "This order is already cancelled."
+            });
+        }
+
+        if (!["PENDING", "CONFIRMED"].includes(order.orderStatus)) {
+            return res.status(400).json({
+                success: false,
+                message: "This order can no longer be cancelled."
+            });
+        }
+
+        // 4. Prevent duplicate cancellation requests
+        if (order.cancellationStatus === "PROCESSING") {
+            return res.status(409).json({
+                success: false,
+                message: "Cancellation is already being processed."
+            });
+        }
+
+        if (order.cancellationStatus === "COMPLETED") {
+            return res.status(400).json({
+                success: false,
+                message: "This order is already cancelled."
+            });
+        }
+
+        // 5. Claim the cancellation request atomically
+        const claimedOrder = await Order.findOneAndUpdate(
+            {
+                _id: orderId,
+                user: userId,
+                orderStatus: { $in: ["PENDING", "CONFIRMED"] },
+                cancellationStatus: { $nin: ["PROCESSING", "COMPLETED"] }
+            },
+            {
+                $set: {
+                    cancellationStatus: "PROCESSING",
+                    cancellationReason: String(
+                        req.body?.reason || "Cancelled by customer"
+                    ).trim()
+                }
+            },
+            { new: true }
+        );
+
+        if (!claimedOrder) {
+            return res.status(409).json({
+                success: false,
+                message: "Another cancellation request is being processed."
+            });
+        }
+        
+        // 6. Process Razorpay refund for paid orders
+        if (
+            claimedOrder.paymentMethod === "RAZORPAY" &&
+            claimedOrder.paymentStatus === "PAID"
+        ) {
+            if (!claimedOrder.razorpayPaymentId) {
+                throw new Error("Razorpay payment ID is missing.");
+            }
+
+            const refundAmount = Math.round(
+                claimedOrder.totalAmount * 100
+            );
+
+            const refund = await razorpay.payments.refund(
+                claimedOrder.razorpayPaymentId,
+                {
+                    amount: refundAmount,
+                    receipt: `cancel_${claimedOrder._id}`,
+                    notes: {
+                        orderId: String(claimedOrder._id),
+                        reason: claimedOrder.cancellationReason
+                    }
+                }
+            );
+
+            // Save Razorpay refund details
+            claimedOrder.refundId = refund.id;
+            claimedOrder.refundStatus = "PROCESSED";
+
+            await claimedOrder.save();
+        }
+
+        // 7. Restore stock and complete cancellation atomically
+        const shouldRestoreStock =
+            claimedOrder.paymentMethod === "COD" ||
+            (
+                claimedOrder.paymentMethod === "RAZORPAY" &&
+                claimedOrder.paymentStatus === "PAID"
+            );
+            console.log("Starting MongoDB transaction...");
+
+        session = await mongoose.startSession();
+
+        await session.withTransaction(async () => {
+            const currentOrder = await Order.findOne({
+                _id: orderId,
+                user: userId
+            }).session(session);
+
+            if (!currentOrder) {
+                throw new Error("Order not found during cancellation.");
+            }
+
+            // Restore stock only once
+            if (shouldRestoreStock && !currentOrder.stockRestored) {
+                for (const item of currentOrder.items) {
+                    console.log("Restoring book stock:", {
+    bookId: String(item.book),
+    quantity: item.quantity
+});
+                    const result = await Book.updateOne(
+                        { _id: item.book },
+                        {
+                            $inc: {
+                                stock: item.quantity
+                            }
+                        },
+                        { session }
+                    );
+
+                    if (result.matchedCount !== 1) {
+                        throw new Error(
+                            `Book not found: ${item.title}`
+                        );
+                    }
+                }
+
+                currentOrder.stockRestored = true;
+            }
+
+            currentOrder.orderStatus = "CANCELLED";
+            currentOrder.cancelledAt = new Date();
+            currentOrder.cancellationStatus = "COMPLETED";
+
+            await currentOrder.save({ session });
+            console.log("Order saved successfully inside transaction.");
+        });
+console.log("MongoDB transaction completed successfully.");
+        return res.status(200).json({
+            success: true,
+            message: "Your order has been cancelled successfully.",
+            orderStatus: "CANCELLED",
+            orderId: String(claimedOrder._id),
+            refundId: claimedOrder.refundId || null
+        });
+
+    } catch (error) {
+        console.error("Cancel order error:", error);
+
+        // Do not automatically release the processing lock:
+        // the refund request may have succeeded even if the
+        // server did not receive its response.
+        return res.status(500).json({
+            success: false,
+            message:
+                "Cancellation could not be completed. Please contact support before retrying."
+        });
+
+    } finally {
+        if (session) {
+            await session.endSession();
+        }
     }
 };
