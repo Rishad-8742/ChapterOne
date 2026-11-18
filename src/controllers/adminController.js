@@ -79,7 +79,7 @@ const postLogin = async (req, res) => {
 
         res.cookie("chapterone_admin_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure:false,
             sameSite: "lax",
             maxAge: 1000 * 60 * 60 * 8,
             path: "/"
@@ -209,7 +209,7 @@ const getProducts = (req, res) => {
 const postLogout = (req, res) => {
     res.clearCookie("chapterone_admin_token", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         sameSite: "lax",
         path: "/"
     });
