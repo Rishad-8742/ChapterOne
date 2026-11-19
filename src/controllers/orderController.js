@@ -313,7 +313,7 @@ exports.createRazorpayOrder = async (req, res) => {
         const cart = req.user.cart || [];
 
         if (!cart.length) {
-            return res.status(40590).json({
+            return res.status(400).json({
                 success: false,
                 message: "Your cart is empty."
             });

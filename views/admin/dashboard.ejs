@@ -48,7 +48,7 @@
     <div class="stat-info">
       <span class="stat-label">Active Users</span>
       <strong class="stat-value"><%= active %></strong>
-      <span class="stat-meter"><i style="width: <%= activePct %>%"></i></span>
+    <span class="stat-meter" style="--pct: <%= activePct %>%"><i></i></span>
     </div>
   </div>
 
@@ -59,7 +59,7 @@
     <div class="stat-info">
       <span class="stat-label">Blocked Users</span>
       <strong class="stat-value"><%= blocked %></strong>
-      <span class="stat-meter"><i style="width: <%= blockedPct %>%"></i></span>
+      <span class="stat-meter" style="--pct: <%= activePct %>%"><i></i></span>
     </div>
   </div>
 
@@ -70,7 +70,7 @@
     <div class="stat-info">
       <span class="stat-label">Active Rate</span>
       <strong class="stat-value"><%= activePct %>%</strong>
-      <span class="stat-meter"><i style="width: <%= activePct %>%"></i></span>
+<span class="stat-meter"><i data-width="<%= activePct %>"></i></span>
     </div>
   </div>
 
