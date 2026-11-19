@@ -107,7 +107,7 @@
         };
 
         try {
-            const response = await fetch("/user/cart/add", {
+            const response = await fetch("/user/cart/", {
                 method: "POST",
                 credentials: "include",
                 headers: {
