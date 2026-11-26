@@ -6,6 +6,13 @@
   <meta name="theme-color" content="#4f46e5">
   <title><%= title %> | Admin Panel</title>
   <link rel="stylesheet" href="/css/admin-layout.css">
+  <% if (typeof pageCss !== "undefined" && pageCss) { %>
+    <link rel="stylesheet" href="<%= pageCss %>">
+<% } %>
+
+<% if (typeof pageScript !== "undefined" && pageScript) { %>
+    <script src="<%= pageScript %>" defer></script>
+<% } %>
 </head>
 <body>
 <%
@@ -50,6 +57,10 @@
         <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         <span>Order Management</span>
       </a>
+<a href="/admin/coupons" class="nav-link <%= active === 'coupons' ? 'active' : '' %>">
+  <svg class="icon" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+  <span>Coupons</span>
+</a>
 
       <p class="nav-label">Insights</p>
 
@@ -57,6 +68,7 @@
         <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-5 5"/></svg>
         <span>Overview</span>
       </a>
+
 
     </nav>
 

@@ -4,6 +4,7 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const bookController = require("../controllers/bookController");
 const orderController = require("../controllers/orderController");
+const couponController = require("../controllers/couponController");
 
 const noCache = require("../middleware/noCache");
 const { noUser, userAuth } = require("../middleware/userAuth");
@@ -39,8 +40,12 @@ router.delete("/cart/:bookId", noCache, userAuth, bookController.removeCartItem)
 // CHECKOUT
 router.get("/checkout", noCache, userAuth, checkBlocked, (req, res) => res.render("user/checkout"));
 router.post("/api/orders/cod", noCache, userAuth, checkBlocked, orderController.createCodOrder);
+
+// COUPON VALIDATION
+router.post("/api/coupons/validate",noCache,userAuth,checkBlocked,orderController.validateCoupon);
 router.post("/api/orders/razorpay",noCache,userAuth,checkBlocked,orderController.createRazorpayOrder);
 router.post("/api/orders/razorpay/verify",noCache,userAuth,checkBlocked,orderController.verifyRazorpayPayment);
+router.get("/api/coupons/available",noCache,userAuth,checkBlocked,couponController.getAvailableCoupons);
 
 
 // ORDERS
@@ -59,7 +64,6 @@ console.log("User ID:", req.user?._id);
     checkBlocked,
     orderController.cancelOrder
 );
-
 
 
 // ACCOUNT

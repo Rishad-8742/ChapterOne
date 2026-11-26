@@ -81,11 +81,56 @@
                 <div id="checkoutItems" class="checkout-items">
                     <p class="checkout-loading">Loading your books...</p>
                 </div>
+<div class="coupon-section">
+    <h3>Have a coupon?</h3>
+
+    <!-- AVAILABLE COUPONS -->
+    <div class="available-coupons">
+        <h4>Available coupons</h4>
+
+        <div id="availableCoupons">
+            <p class="coupon-loading">Loading available coupons...</p>
+        </div>
+    </div>
+
+    <!-- MANUAL COUPON INPUT -->
+    <div class="coupon-input-group">
+        <input
+            type="text"
+            id="couponCode"
+            placeholder="Enter coupon code"
+            maxlength="30"
+            autocomplete="off"
+        >
+
+        <button type="button" id="applyCouponBtn">
+            Apply
+        </button>
+    </div>
+
+    <p id="couponMessage" role="status" aria-live="polite"></p>
+
+    <!-- APPLIED COUPON -->
+    <div id="appliedCoupon" hidden>
+        <span id="appliedCouponText"></span>
+
+        <button type="button" id="removeCouponBtn">
+            Remove
+        </button>
+    </div>
+</div>
+<!-- END COUPON SECTION -->
+
 
                 <div class="summary-line">
                     <span>Subtotal</span>
                     <span id="checkoutSubtotal">&#8377;0.00</span>
                 </div>
+                
+                <div class="summary-line" id="discountRow" hidden>
+    <span>Coupon discount</span>
+    <span id="checkoutDiscount">-₹0.00</span>
+</div>
 
                 <div class="summary-line">
                     <span>Delivery</span>

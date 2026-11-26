@@ -1,10 +1,15 @@
+
 "use strict";
+
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 
 const Book = require("../models/bookModel");
 const Order = require("../models/orderModel");
+const Coupon = require("../models/couponModel");
 const razorpay = require("../config/razorpay");
+
+// VALIDATE SHIPPING ADDRESS
 
 const validateShippingAddress = (shippingAddress) => {
     if (
@@ -44,262 +49,95 @@ const validateShippingAddress = (shippingAddress) => {
     return null;
 };
 
-// Create a Cash on Delivery order
-exports.createCodOrder = async (req, res) => {
-    const userId = req.user._id;
+// CALCULATE COUPON DISCOUNT
 
-    try {
-        const { shippingAddress, paymentMethod } = req.body;
+const calculateDiscountFromCoupon = (coupon, subtotal) => {
+    let discount = 0;
 
-        // Validate the shipping details on the server
-        if (
-            !shippingAddress ||
-            typeof shippingAddress !== "object" ||
-            Array.isArray(shippingAddress)
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide your shipping details."
-            });
+    if (coupon.discountType === "fixed") {
+        discount = coupon.discountValue;
+    } else if (coupon.discountType === "percentage") {
+        discount = subtotal * (coupon.discountValue / 100);
+
+        if (coupon.maxDiscount !== null) {
+            discount = Math.min(discount, coupon.maxDiscount);
         }
-
-        const fullName = String(shippingAddress.fullName || "").trim();
-        const phone = String(shippingAddress.phone || "").trim();
-        const address = String(shippingAddress.address || "").trim();
-        const city = String(shippingAddress.city || "").trim();
-        const pincode = String(shippingAddress.pincode || "").trim();
-
-        if (fullName.length < 2 || fullName.length > 60) {
-            return res.status(400).json({
-                success: false,
-                message: "Enter a valid full name."
-            });
-        }
-
-        if (!/^[6-9]\d{9}$/.test(phone)) {
-            return res.status(400).json({
-                success: false,
-                message: "Enter a valid 10-digit Indian mobile number."
-            });
-        }
-
-        if (address.length < 10 || address.length > 250) {
-            return res.status(400).json({
-                success: false,
-                message: "Enter a valid delivery address."
-            });
-        }
-
-        if (city.length < 2 || city.length > 60) {
-            return res.status(400).json({
-                success: false,
-                message: "Enter a valid city or town."
-            });
-        }
-
-        if (!/^\d{6}$/.test(pincode)) {
-            return res.status(400).json({
-                success: false,
-                message: "Enter a valid 6-digit PIN code."
-            });
-        }
-
-
-        // Read the user's session cart
-        const cart = req.user.cart || [];
-
-        if (!cart.length) {
-            return res.status(400).json({
-                success: false,
-                message: "Your cart is empty."
-            });
-        }
-
-        // Validate every cart item
-        for (const item of cart) {
-            if (
-                !mongoose.Types.ObjectId.isValid(item.bookId) ||
-                !Number.isSafeInteger(item.quantity) ||
-                item.quantity < 1
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Your cart contains an invalid item."
-                });
-            }
-        }
-
-        // Get the current books and prices from MongoDB
-        const bookIds = [...new Set(cart.map(item => item.bookId))];
-
-        const books = await Book.find({
-            _id: { $in: bookIds }
-        }).lean();
-
-        const booksById = new Map(
-            books.map(book => [String(book._id), book])
-        );
-
-        const orderItems = [];
-        let subtotal = 0;
-
-        for (const cartItem of cart) {
-            const book = booksById.get(String(cartItem.bookId));
-
-            if (!book) {
-                return res.status(400).json({
-                    success: false,
-                    message: "A book in your cart is no longer available."
-                });
-            }
-
-            if (
-                !Number.isSafeInteger(book.stock) ||
-                book.stock < cartItem.quantity
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message: `${book.title} does not have enough stock.`
-                });
-            }
-
-            if (
-                typeof book.price !== "number" ||
-                !Number.isFinite(book.price) ||
-                book.price < 0
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message: `The price for ${book.title} is invalid.`
-                });
-            }
-
-            const itemSubtotal = book.price * cartItem.quantity;
-
-            if (!Number.isFinite(itemSubtotal)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Unable to calculate your order total."
-                });
-            }
-
-            subtotal += itemSubtotal;
-
-            orderItems.push({
-                book: book._id,
-                title: book.title,
-                author: book.author,
-                image: book.image,
-                price: book.price,
-                quantity: cartItem.quantity,
-                subtotal: itemSubtotal
-            });
-        }
-
-        if (!Number.isFinite(subtotal)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid order total."
-            });
-        }
-
-        // Delivery is free in this version
-        const deliveryFee = 0;
-        const totalAmount = subtotal + deliveryFee;
-
-        /*
-         * Reserve stock using conditional updates.
-         * If any reservation fails, restore stock already reserved.
-         */
-        const reservedItems = [];
-
-        try {
-            for (const item of orderItems) {
-                const result = await Book.updateOne(
-                    {
-                        _id: item.book,
-                        stock: { $gte: item.quantity }
-                    },
-                    {
-                        $inc: { stock: -item.quantity }
-                    }
-                );
-
-                if (result.modifiedCount !== 1) {
-                    throw new Error(
-                        `${item.title} is out of stock or has insufficient stock.`
-                    );
-                }
-
-                reservedItems.push(item);
-            }
-
-            // Save the order only after stock is reserved
-            const order = await Order.create({
-                user: userId,
-                items: orderItems,
-                shippingAddress: {
-                    fullName,
-                    phone,
-                    address,
-                    city,
-                    pincode
-                },
-                subtotal,
-                deliveryFee,
-                totalAmount,
-                paymentMethod: "COD",
-                paymentStatus: "PENDING",
-                orderStatus: "PENDING"
-            });
-
-            // Clear the cart only after the order has been saved
-            req.user.cart = [];
-            await req.user.save();
-
-            return res.status(201).json({
-                success: true,
-                message: "Your order has been placed successfully!",
-                orderId: String(order._id),
-                redirectUrl: "/user/orders"
-            });
-        } catch (error) {
-            // Restore reserved stock if order creation fails
-            for (const item of reservedItems.reverse()) {
-                await Book.updateOne(
-                    { _id: item.book },
-                    { $inc: { stock: item.quantity } }
-                );
-            }
-
-            if (
-                error.message.includes("out of stock") ||
-                error.message.includes("insufficient stock")
-            ) {
-                return res.status(409).json({
-                    success: false,
-                    message: error.message
-                });
-            }
-
-            throw error;
-        }
-    } catch (error) {
-        console.error("Create COD order error:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Unable to place your order. Please try again."
-        });
     }
+
+    discount = Math.min(discount, subtotal);
+    discount = Math.round(discount * 100) / 100;
+
+    const total = Math.round(
+        (subtotal - discount) * 100
+    ) / 100;
+
+    return {
+        discount,
+        total
+    };
 };
 
+// VALIDATE AND CALCULATE COUPON
 
-// Create a Razorpay order
-exports.createRazorpayOrder = async (req, res) => {
+const calculateCouponDiscount = async (code, subtotal) => {
+    if (!code || typeof code !== "string") {
+        throw new Error("Please enter a coupon code.");
+    }
+
+    const couponCode = code.trim().toUpperCase();
+
+    const coupon = await Coupon.findOne({
+        code: couponCode
+    });
+
+    if (!coupon) {
+        throw new Error("Invalid coupon code.");
+    }
+
+    const now = new Date();
+
+    if (!coupon.isActive) {
+        throw new Error("This coupon is currently inactive.");
+    }
+
+    if (now < coupon.startDate) {
+        throw new Error("This coupon is not available yet.");
+    }
+
+    if (now >= coupon.expiryDate) {
+        throw new Error("This coupon has expired.");
+    }
+
+    if (coupon.usedCount >= coupon.usageLimit) {
+        throw new Error("This coupon has reached its usage limit.");
+    }
+
+    if (subtotal < coupon.minPurchase) {
+        throw new Error(
+            `Minimum purchase of ₹${coupon.minPurchase} is required.`
+        );
+    }
+
+    const calculation = calculateDiscountFromCoupon(
+        coupon,
+        subtotal
+    );
+
+    return {
+        coupon,
+        discount: calculation.discount,
+        total: calculation.total
+    };
+};
+
+// CREATE COD ORDER
+
+exports.createCodOrder = async (req, res) => {
+    const userId = req.user._id;
+    let session;
+
     try {
-        const userId = req.user._id;
-        const { shippingAddress } = req.body;
+        const { shippingAddress, couponCode } = req.body;
 
         const addressError = validateShippingAddress(shippingAddress);
 
@@ -333,7 +171,306 @@ exports.createRazorpayOrder = async (req, res) => {
             }
         }
 
-        // Get current book information from the database
+        // Get current book details
+        const bookIds = [
+            ...new Set(cart.map(item => String(item.bookId)))
+        ];
+
+        const books = await Book.find({
+            _id: { $in: bookIds }
+        }).lean();
+
+        const booksById = new Map(
+            books.map(book => [String(book._id), book])
+        );
+
+        const orderItems = [];
+        let subtotal = 0;
+
+        for (const cartItem of cart) {
+            const book = booksById.get(String(cartItem.bookId));
+
+            if (!book) {
+                return res.status(400).json({
+                    success: false,
+                    message: "A book in your cart is no longer available."
+                });
+            }
+
+            if (
+                !Number.isSafeInteger(book.stock) ||
+                book.stock < cartItem.quantity
+            ) {
+                return res.status(409).json({
+                    success: false,
+                    message: `${book.title} does not have enough stock.`
+                });
+            }
+
+            if (
+                typeof book.price !== "number" ||
+                !Number.isFinite(book.price) ||
+                book.price < 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: `The price for ${book.title} is invalid.`
+                });
+            }
+
+            const itemSubtotal = book.price * cartItem.quantity;
+
+            if (
+                !Number.isFinite(itemSubtotal) ||
+                !Number.isSafeInteger(Math.round(itemSubtotal * 100))
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Unable to calculate your order total."
+                });
+            }
+
+            subtotal += itemSubtotal;
+
+            orderItems.push({
+                book: book._id,
+                title: book.title,
+                author: book.author,
+                image: book.image,
+                price: book.price,
+                quantity: cartItem.quantity,
+                subtotal: itemSubtotal
+            });
+        }
+
+        subtotal = Math.round(subtotal * 100) / 100;
+
+        if (!Number.isFinite(subtotal) || subtotal <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid order total."
+            });
+        }
+
+        // Preview coupon validation
+        let couponResult = null;
+
+        if (
+            typeof couponCode === "string" &&
+            couponCode.trim()
+        ) {
+            try {
+                couponResult = await calculateCouponDiscount(
+                    couponCode,
+                    subtotal
+                );
+            } catch (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        }
+
+        const deliveryFee = 0;
+
+        let couponDiscount = 0;
+        let totalAmount = subtotal;
+        let createdOrder;
+
+        session = await mongoose.startSession();
+
+        // Start transaction
+        await session.withTransaction(async () => {
+            let claimedCoupon = null;
+
+            // Atomically claim coupon usage
+            if (couponResult) {
+                const now = new Date();
+
+                claimedCoupon = await Coupon.findOneAndUpdate(
+                    {
+                        _id: couponResult.coupon._id,
+                        isActive: true,
+                        startDate: { $lte: now },
+                        expiryDate: { $gt: now },
+                        minPurchase: { $lte: subtotal },
+                        $expr: {
+                            $lt: ["$usedCount", "$usageLimit"]
+                        }
+                    },
+                    {
+                        $inc: {
+                            usedCount: 1
+                        }
+                    },
+                    {
+                        new: true,
+                        session
+                    }
+                );
+
+                if (!claimedCoupon) {
+                    throw new Error(
+                        "This coupon is no longer available or has reached its usage limit."
+                    );
+                }
+
+                const calculation = calculateDiscountFromCoupon(
+                    claimedCoupon,
+                    subtotal
+                );
+
+                couponDiscount = calculation.discount;
+            }
+
+            // Calculate final amount
+            totalAmount = Math.round(
+                (subtotal + deliveryFee - couponDiscount) * 100
+            ) / 100;
+
+            // Reserve stock
+            for (const item of orderItems) {
+                const result = await Book.updateOne(
+                    {
+                        _id: item.book,
+                        stock: { $gte: item.quantity }
+                    },
+                    {
+                        $inc: {
+                            stock: -item.quantity
+                        }
+                    },
+                    { session }
+                );
+
+                if (result.modifiedCount !== 1) {
+                    throw new Error(
+                        `${item.title} is out of stock or has insufficient stock.`
+                    );
+                }
+            }
+
+            // Create order
+            const orders = await Order.create(
+                [{
+                    user: userId,
+                    items: orderItems,
+
+                    shippingAddress: {
+                        fullName: String(shippingAddress.fullName).trim(),
+                        phone: String(shippingAddress.phone).trim(),
+                        address: String(shippingAddress.address).trim(),
+                        city: String(shippingAddress.city).trim(),
+                        pincode: String(shippingAddress.pincode).trim()
+                    },
+
+                    subtotal,
+                    deliveryFee,
+                    totalAmount,
+
+                    coupon: claimedCoupon
+                        ? claimedCoupon._id
+                        : null,
+
+                    couponCode: claimedCoupon
+                        ? claimedCoupon.code
+                        : null,
+
+                    couponDiscount,
+
+                    paymentMethod: "COD",
+                    paymentStatus: "PENDING",
+                    orderStatus: "PENDING"
+                }],
+                { session }
+            );
+
+            createdOrder = orders[0];
+
+            // Clear cart
+            req.user.cart = [];
+
+            await req.user.save({ session });
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Your order has been placed successfully!",
+            orderId: String(createdOrder._id),
+            redirectUrl: "/user/orders"
+        });
+
+    } catch (error) {
+        console.error("Create COD order error:", error);
+
+        if (
+            error.message.includes("out of stock") ||
+            error.message.includes("insufficient stock") ||
+            error.message.toLowerCase().includes("coupon")
+        ) {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to place your order. Please try again."
+        });
+
+    } finally {
+        if (session) {
+            await session.endSession();
+        }
+    }
+};
+
+// CREATE RAZORPAY ORDER
+
+exports.createRazorpayOrder = async (req, res) => {
+    let claimedCouponId = null;
+    let orderSaved = false;
+
+    try {
+        const userId = req.user._id;
+
+        const { shippingAddress, couponCode } = req.body;
+
+        const addressError = validateShippingAddress(shippingAddress);
+
+        if (addressError) {
+            return res.status(400).json({
+                success: false,
+                message: addressError
+            });
+        }
+
+        const cart = req.user.cart || [];
+
+        if (!cart.length) {
+            return res.status(400).json({
+                success: false,
+                message: "Your cart is empty."
+            });
+        }
+
+        // Validate cart
+        for (const item of cart) {
+            if (
+                !mongoose.Types.ObjectId.isValid(item.bookId) ||
+                !Number.isSafeInteger(item.quantity) ||
+                item.quantity < 1
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Your cart contains an invalid item."
+                });
+            }
+        }
+
+        // Get current book information
         const bookIds = [
             ...new Set(cart.map(item => String(item.bookId)))
         ];
@@ -402,31 +539,104 @@ exports.createRazorpayOrder = async (req, res) => {
             });
         }
 
-        const deliveryFee = 0;
-        const totalAmount = subtotal + deliveryFee;
-        const amountInPaise = Math.round(totalAmount * 100);
+        subtotal = Math.round(subtotal * 100) / 100;
 
-        if (
-            !Number.isSafeInteger(amountInPaise) ||
-            amountInPaise <= 0
-        ) {
+        if (!Number.isFinite(subtotal) || subtotal <= 0) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid order total."
             });
         }
 
-        // Create the order with Razorpay
+        const deliveryFee = 0;
+
+        let couponDiscount = 0;
+        let claimedCoupon = null;
+
+        // Preview coupon validation
+        if (
+            typeof couponCode === "string" &&
+            couponCode.trim()
+        ) {
+            try {
+                const couponResult = await calculateCouponDiscount(
+                    couponCode,
+                    subtotal
+                );
+
+                // Atomically claim coupon usage
+                const now = new Date();
+
+                claimedCoupon = await Coupon.findOneAndUpdate(
+                    {
+                        _id: couponResult.coupon._id,
+                        isActive: true,
+                        startDate: { $lte: now },
+                        expiryDate: { $gt: now },
+                        minPurchase: { $lte: subtotal },
+                        $expr: {
+                            $lt: ["$usedCount", "$usageLimit"]
+                        }
+                    },
+                    {
+                        $inc: {
+                            usedCount: 1
+                        }
+                    },
+                    { new: true }
+                );
+
+                if (!claimedCoupon) {
+                    return res.status(409).json({
+                        success: false,
+                        message:
+                            "This coupon is no longer available or has reached its usage limit."
+                    });
+                }
+
+                claimedCouponId = claimedCoupon._id;
+
+                const calculation = calculateDiscountFromCoupon(
+                    claimedCoupon,
+                    subtotal
+                );
+
+                couponDiscount = calculation.discount;
+
+            } catch (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        }
+
+        // Calculate discounted total
+        const totalAmount = Math.round(
+            (subtotal + deliveryFee - couponDiscount) * 100
+        ) / 100;
+
+        const amountInPaise = Math.round(totalAmount * 100);
+
+        if (
+            !Number.isSafeInteger(amountInPaise) ||
+            amountInPaise <= 0
+        ) {
+            throw new Error("Invalid order total.");
+        }
+
+        // Create Razorpay order
         const razorpayOrder = await razorpay.orders.create({
             amount: amountInPaise,
             currency: "INR",
             receipt: `co_${new mongoose.Types.ObjectId()}`
         });
 
-        // Save a pending order in MongoDB
+        // Save pending order in MongoDB
         const order = await Order.create({
             user: userId,
             items: orderItems,
+
             shippingAddress: {
                 fullName: String(shippingAddress.fullName).trim(),
                 phone: String(shippingAddress.phone).trim(),
@@ -434,14 +644,32 @@ exports.createRazorpayOrder = async (req, res) => {
                 city: String(shippingAddress.city).trim(),
                 pincode: String(shippingAddress.pincode).trim()
             },
+
             subtotal,
             deliveryFee,
             totalAmount,
+
+            coupon: claimedCoupon
+                ? claimedCoupon._id
+                : null,
+
+            couponCode: claimedCoupon
+                ? claimedCoupon.code
+                : null,
+
+            couponDiscount,
+
             paymentMethod: "RAZORPAY",
             paymentStatus: "PENDING",
             orderStatus: "PENDING",
-            razorpayOrderId: razorpayOrder.id
+
+            razorpayOrderId: razorpayOrder.id,
+            // Payment reservation expires after 15 minutes
+            paymentExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
+            couponUsageReleased: false
         });
+
+        orderSaved = true;
 
         return res.status(201).json({
             success: true,
@@ -456,6 +684,26 @@ exports.createRazorpayOrder = async (req, res) => {
     } catch (error) {
         console.error("Create Razorpay order error:", error);
 
+        // Release coupon if order creation failed
+        if (claimedCouponId && !orderSaved) {
+            try {
+                await Coupon.updateOne(
+                    {
+                        _id: claimedCouponId,
+                        usedCount: { $gt: 0 }
+                    },
+                    {
+                        $inc: { usedCount: -1 }
+                    }
+                );
+            } catch (releaseError) {
+                console.error(
+                    "Failed to release coupon usage:",
+                    releaseError
+                );
+            }
+        }
+
         return res.status(500).json({
             success: false,
             message: "Unable to start online payment. Please try again."
@@ -463,7 +711,8 @@ exports.createRazorpayOrder = async (req, res) => {
     }
 };
 
-// Verify Razorpay payment
+
+// VERIFY RAZORPAY PAYMENT
 exports.verifyRazorpayPayment = async (req, res) => {
     try {
         const userId = req.user._id;
@@ -488,7 +737,6 @@ exports.verifyRazorpayPayment = async (req, res) => {
             });
         }
 
-        // Find the order belonging to this user
         const order = await Order.findOne({
             _id: orderId,
             user: userId,
@@ -503,7 +751,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
             });
         }
 
-        // Handle repeated verification requests
+        // Handle repeated verification
         if (order.paymentStatus === "PAID") {
             if (order.razorpayPaymentId === razorpay_payment_id) {
                 return res.json({
@@ -526,7 +774,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
             });
         }
 
-        // Verify Razorpay's signature
+        // Verify Razorpay signature
         const expectedSignature = crypto
             .createHmac(
                 "sha256",
@@ -555,7 +803,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
             });
         }
 
-        // Confirm payment details directly with Razorpay
+        // Confirm payment with Razorpay
         let payment = await razorpay.payments.fetch(
             razorpay_payment_id
         );
@@ -575,7 +823,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
             });
         }
 
-        // Capture payment if it is authorized but not captured
+        // Capture authorized payment
         if (payment.status === "authorized") {
             payment = await razorpay.payments.capture(
                 razorpay_payment_id,
@@ -591,7 +839,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
             });
         }
 
-        // Reserve stock only if sufficient stock remains
+        // Reserve stock after successful payment
         const reservedItems = [];
 
         try {
@@ -622,18 +870,20 @@ exports.verifyRazorpayPayment = async (req, res) => {
             await order.save();
 
         } catch (error) {
-            // Restore stock if saving the order fails
+            // Restore stock if order update fails
             for (const item of reservedItems) {
                 await Book.updateOne(
                     { _id: item.book },
-                    { $inc: { stock: item.quantity } }
+                    {
+                        $inc: { stock: item.quantity }
+                    }
                 );
             }
 
             throw error;
         }
 
-        // Remove purchased quantities from the user's cart
+        // Remove purchased quantities from cart
         for (const orderedItem of order.items) {
             const cartItem = req.user.cart.find(
                 item =>
@@ -672,7 +922,9 @@ exports.verifyRazorpayPayment = async (req, res) => {
         });
     }
 };
-// Get the logged-in user's order history
+
+// GET USER ORDER HISTORY
+
 exports.getMyOrders = async (req, res) => {
     try {
         const userId = req.user._id;
@@ -682,7 +934,7 @@ exports.getMyOrders = async (req, res) => {
         })
             .sort({ createdAt: -1 })
             .select(
-                "items shippingAddress subtotal deliveryFee totalAmount paymentMethod paymentStatus orderStatus createdAt"
+                "items shippingAddress subtotal deliveryFee totalAmount coupon couponCode couponDiscount paymentMethod paymentStatus orderStatus createdAt"
             )
             .lean();
 
@@ -701,15 +953,16 @@ exports.getMyOrders = async (req, res) => {
     }
 };
 
+// CANCEL ORDER
+
 exports.cancelOrder = async (req, res) => {
     let session;
 
     try {
-        console.log("🔥 CANCEL ORDER CONTROLLER HIT 🔥");
         const userId = req.user._id;
         const orderId = req.params.orderId;
 
-        // 1. Validate order ID
+        // Validate order ID
         if (!mongoose.Types.ObjectId.isValid(orderId)) {
             return res.status(400).json({
                 success: false,
@@ -717,7 +970,7 @@ exports.cancelOrder = async (req, res) => {
             });
         }
 
-        // 2. Find the customer's order
+        // Find customer's order
         const order = await Order.findOne({
             _id: orderId,
             user: userId
@@ -729,15 +982,7 @@ exports.cancelOrder = async (req, res) => {
                 message: "Order not found."
             });
         }
-        console.log("========== CANCELLATION DEBUG ==========");
-console.log("Logged-in user:", String(userId));
-console.log("Order user:", String(order.user));
-console.log("Payment method:", order.paymentMethod);
-console.log("Order status:", order.orderStatus);
-console.log("Cancellation status:", order.cancellationStatus);
-console.log("Stock restored:", order.stockRestored);
 
-        // 3. Check order status
         if (order.orderStatus === "CANCELLED") {
             return res.status(400).json({
                 success: false,
@@ -752,7 +997,6 @@ console.log("Stock restored:", order.stockRestored);
             });
         }
 
-        // 4. Prevent duplicate cancellation requests
         if (order.cancellationStatus === "PROCESSING") {
             return res.status(409).json({
                 success: false,
@@ -767,13 +1011,15 @@ console.log("Stock restored:", order.stockRestored);
             });
         }
 
-        // 5. Claim the cancellation request atomically
+        // Claim cancellation request atomically
         const claimedOrder = await Order.findOneAndUpdate(
             {
                 _id: orderId,
                 user: userId,
                 orderStatus: { $in: ["PENDING", "CONFIRMED"] },
-                cancellationStatus: { $nin: ["PROCESSING", "COMPLETED"] }
+                cancellationStatus: {
+                    $nin: ["PROCESSING", "COMPLETED"]
+                }
             },
             {
                 $set: {
@@ -789,11 +1035,12 @@ console.log("Stock restored:", order.stockRestored);
         if (!claimedOrder) {
             return res.status(409).json({
                 success: false,
-                message: "Another cancellation request is being processed."
+                message:
+                    "Another cancellation request is being processed."
             });
         }
-        
-        // 6. Process Razorpay refund for paid orders
+
+        // Process Razorpay refund for paid orders
         if (
             claimedOrder.paymentMethod === "RAZORPAY" &&
             claimedOrder.paymentStatus === "PAID"
@@ -818,21 +1065,18 @@ console.log("Stock restored:", order.stockRestored);
                 }
             );
 
-            // Save Razorpay refund details
             claimedOrder.refundId = refund.id;
             claimedOrder.refundStatus = "PROCESSED";
 
             await claimedOrder.save();
         }
 
-        // 7. Restore stock and complete cancellation atomically
         const shouldRestoreStock =
             claimedOrder.paymentMethod === "COD" ||
             (
                 claimedOrder.paymentMethod === "RAZORPAY" &&
                 claimedOrder.paymentStatus === "PAID"
             );
-            console.log("Starting MongoDB transaction...");
 
         session = await mongoose.startSession();
 
@@ -843,16 +1087,14 @@ console.log("Stock restored:", order.stockRestored);
             }).session(session);
 
             if (!currentOrder) {
-                throw new Error("Order not found during cancellation.");
+                throw new Error(
+                    "Order not found during cancellation."
+                );
             }
 
             // Restore stock only once
             if (shouldRestoreStock && !currentOrder.stockRestored) {
                 for (const item of currentOrder.items) {
-                    console.log("Restoring book stock:", {
-    bookId: String(item.book),
-    quantity: item.quantity
-});
                     const result = await Book.updateOne(
                         { _id: item.book },
                         {
@@ -873,14 +1115,40 @@ console.log("Stock restored:", order.stockRestored);
                 currentOrder.stockRestored = true;
             }
 
+            // Release coupon usage inside the transaction
+// Release coupon usage only once
+if (
+    currentOrder.coupon &&
+    !currentOrder.couponUsageReleased
+) {
+    const couponUpdate = await Coupon.updateOne(
+        {
+            _id: currentOrder.coupon,
+            usedCount: { $gt: 0 }
+        },
+        {
+            $inc: {
+                usedCount: -1
+            }
+        },
+        { session }
+    );
+
+    if (couponUpdate.modifiedCount !== 1) {
+        throw new Error(
+            "Unable to release coupon usage."
+        );
+    }
+
+    currentOrder.couponUsageReleased = true;
+}
             currentOrder.orderStatus = "CANCELLED";
             currentOrder.cancelledAt = new Date();
             currentOrder.cancellationStatus = "COMPLETED";
 
             await currentOrder.save({ session });
-            console.log("Order saved successfully inside transaction.");
         });
-console.log("MongoDB transaction completed successfully.");
+
         return res.status(200).json({
             success: true,
             message: "Your order has been cancelled successfully.",
@@ -892,9 +1160,6 @@ console.log("MongoDB transaction completed successfully.");
     } catch (error) {
         console.error("Cancel order error:", error);
 
-        // Do not automatically release the processing lock:
-        // the refund request may have succeeded even if the
-        // server did not receive its response.
         return res.status(500).json({
             success: false,
             message:
@@ -905,5 +1170,114 @@ console.log("MongoDB transaction completed successfully.");
         if (session) {
             await session.endSession();
         }
+    }
+};
+
+// VALIDATE COUPON FOR CHECKOUT
+
+exports.validateCoupon = async (req, res) => {
+    try {
+        const { code } = req.body;
+
+        const cart = req.user.cart || [];
+
+        if (!cart.length) {
+            return res.status(400).json({
+                success: false,
+                message: "Your cart is empty."
+            });
+        }
+
+        // Validate cart items
+        for (const item of cart) {
+            if (
+                !mongoose.Types.ObjectId.isValid(item.bookId) ||
+                !Number.isSafeInteger(item.quantity) ||
+                item.quantity < 1
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Your cart contains an invalid item."
+                });
+            }
+        }
+
+        // Get current book prices
+        const bookIds = [
+            ...new Set(cart.map(item => String(item.bookId)))
+        ];
+
+        const books = await Book.find({
+            _id: { $in: bookIds }
+        }).lean();
+
+        const booksById = new Map(
+            books.map(book => [String(book._id), book])
+        );
+
+        let subtotal = 0;
+
+        for (const item of cart) {
+            const book = booksById.get(String(item.bookId));
+
+            if (!book) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "A book in your cart is no longer available."
+                });
+            }
+
+            if (
+                typeof book.price !== "number" ||
+                !Number.isFinite(book.price) ||
+                book.price < 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid book price."
+                });
+            }
+
+            subtotal += book.price * item.quantity;
+        }
+
+        subtotal = Math.round(subtotal * 100) / 100;
+
+        if (!Number.isFinite(subtotal) || subtotal <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid cart total."
+            });
+        }
+
+        // Validate coupon without increasing usage
+        const result = await calculateCouponDiscount(
+            code,
+            subtotal
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Coupon applied successfully!",
+            coupon: {
+                code: result.coupon.code,
+                discountType: result.coupon.discountType,
+                discountValue: result.coupon.discountValue,
+                maxDiscount: result.coupon.maxDiscount
+            },
+            subtotal,
+            discount: result.discount,
+            total: result.total
+        });
+
+    } catch (error) {
+        console.error("Validate coupon error:", error);
+
+        return res.status(400).json({
+            success: false,
+            message:
+                error.message || "Unable to validate coupon."
+        });
     }
 };

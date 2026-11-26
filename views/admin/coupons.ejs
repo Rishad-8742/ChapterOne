@@ -1,0 +1,61 @@
+<%- include('partials/top', {
+    title: 'Coupon Management',
+    active: 'coupons',
+    pageCss: '/css/coupons.css',
+    pageScript: '/js/coupons.js'
+}) %>
+<div class="page-header">
+    <div>
+        <h1>Coupon Management</h1>
+        <p>Create and manage discount coupons for ChapterOne.</p>
+    </div>
+
+    <button type="button" id="openCouponForm" class="primary-btn">
+        + Create Coupon
+    </button>
+</div>
+
+<!-- Coupon Form Partial -->
+<%- include('partials/coupon-form') %>
+
+<!-- Coupon Listing -->
+<section class="coupon-list-section">
+
+    <div class="section-header">
+        <div>
+            <h2>All Coupons</h2>
+            <p>Manage your store discount offers.</p>
+        </div>
+
+        <input
+            type="search"
+            id="couponSearch"
+            placeholder="Search coupon code..."
+        >
+    </div>
+
+    <div class="table-wrapper">
+        <table class="coupon-table">
+            <thead>
+                <tr>
+                    <th>Coupon Code</th>
+                    <th>Discount</th>
+                    <th>Category</th>
+                    <th>Usage</th>
+                    <th>Expiry Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody id="couponTableBody">
+                <tr>
+                    <td colspan="7">Loading coupons...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+<%- include('partials/bottom') %>

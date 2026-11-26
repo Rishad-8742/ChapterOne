@@ -6,6 +6,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkoutItemCount = document.getElementById("checkoutItemCount");
     const checkoutSubtotal = document.getElementById("checkoutSubtotal");
     const checkoutTotal = document.getElementById("checkoutTotal");
+
+    // COUPON ELEMENTS
+    const couponCodeInput = document.getElementById("couponCode");
+    const applyCouponBtn = document.getElementById("applyCouponBtn");
+    const couponMessage = document.getElementById("couponMessage");
+    const appliedCouponBox = document.getElementById("appliedCoupon");
+    const appliedCouponText = document.getElementById("appliedCouponText");
+    const removeCouponBtn = document.getElementById("removeCouponBtn");
+    const availableCouponsContainer =document.getElementById("availableCoupons");
+
+    const discountRow = document.getElementById("discountRow");
+    const checkoutDiscount = document.getElementById("checkoutDiscount");
+
     const checkoutMessage = document.getElementById("checkoutMessage");
     const placeOrderBtn = document.getElementById("placeOrderBtn");
 
@@ -16,10 +29,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const addressLoadMessage = document.getElementById("addressLoadMessage");
     const addAddressLink = document.getElementById("addAddressLink");
 
-    if (!checkoutForm || !placeOrderBtn) {
-        console.error("Checkout form or Place Order button was not found.");
-        return;
-    }
+if (
+    !couponCodeInput ||
+    !applyCouponBtn ||
+    !couponMessage ||
+    !appliedCouponBox ||
+    !appliedCouponText ||
+    !removeCouponBtn ||
+    !discountRow ||
+    !checkoutDiscount
+) {
+    console.error("One or more coupon elements are missing from checkout.ejs.");
+    return;
+}
 
     let cartData = {
         items: [],
@@ -31,11 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let requestInProgress = false;
     let addressesLoaded = false;
     let orderCompleted = false;
-
-
-    // =====================================
+    let appliedCoupon = null;
+    let couponRequestInProgress = false;
+    
     // HELPERS
-    // =====================================
 
     function showMessage(message, type = "error") {
         checkoutMessage.textContent = message;
@@ -146,7 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!hasItems) return "Place order";
 
-        const amount = formatPrice(cartData.total);
+        const amount = formatPrice(
+            appliedCoupon
+                ? appliedCoupon.total
+                : cartData.total
+        );
 
         return getPaymentMethod() === "RAZORPAY"
             ? `Pay ${amount}`
@@ -178,16 +203,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // =====================================
     // ORDER SUMMARY
-    // =====================================
 
+    function renderPriceSummary() {
+    const subtotal = Number(cartData.total) || 0;
+
+    const discount = appliedCoupon
+        ? Number(appliedCoupon.discount) || 0
+        : 0;
+
+    const total = appliedCoupon
+        ? Number(appliedCoupon.total)
+        : subtotal;
+
+    checkoutSubtotal.textContent = formatPrice(subtotal);
+    checkoutTotal.textContent = formatPrice(total);
+
+    if (appliedCoupon && discount > 0) {
+        discountRow.hidden = false;
+        checkoutDiscount.textContent = `-${formatPrice(discount)}`;
+    } else {
+        discountRow.hidden = true;
+        checkoutDiscount.textContent = formatPrice(0);
+    }
+
+    updatePlaceOrderButton();
+}
     function renderOrderSummary(data) {
         cartData = data;
 
-        checkoutSubtotal.textContent = formatPrice(data.total);
-        checkoutTotal.textContent = formatPrice(data.total);
-
+        renderPriceSummary();
         const items = Array.isArray(data.items) ? data.items : [];
 
         const itemCount = items.reduce(
@@ -266,6 +311,197 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+  
+// COUPON MANAGEMENT
+
+    async function applyCoupon() {
+        if (couponRequestInProgress || !cartData.items.length) {
+        return;
+    }
+
+    const code = couponCodeInput.value.trim().toUpperCase();
+
+    if (!code) {
+        couponMessage.textContent = "Please enter a coupon code.";
+        couponMessage.className = "coupon-error";
+        return;
+    }
+
+    couponRequestInProgress = true;
+    applyCouponBtn.disabled = true;
+    applyCouponBtn.textContent = "Applying...";
+
+    couponMessage.textContent = "";
+
+    try {
+        const data = await sendRequest(
+            "/user/api/coupons/validate",
+            {
+                method: "POST",
+                body: JSON.stringify({ code })
+            }
+        );
+
+        // The backend calculates the actual discount.
+        appliedCoupon = {
+            code: data.coupon.code,
+            discount: Number(data.discount),
+            total: Number(data.total)
+        };
+
+        renderPriceSummary();
+
+        appliedCouponBox.hidden = false;
+
+        appliedCouponText.textContent =
+            `${data.coupon.code} applied successfully`;
+
+        couponCodeInput.value = data.coupon.code;
+
+        couponMessage.textContent =
+            data.message || "Coupon applied successfully!";
+
+        couponMessage.className = "coupon-success";
+
+    } catch (error) {
+    appliedCoupon = null;
+    appliedCouponBox.hidden = true;
+
+    renderPriceSummary();
+
+    couponMessage.textContent = error.message;
+    couponMessage.className = "coupon-error";
+
+    } finally {
+        couponRequestInProgress = false;
+        applyCouponBtn.disabled = false;
+        applyCouponBtn.textContent = "Apply";
+    }
+}
+
+
+// APPLY BUTTON
+applyCouponBtn.addEventListener("click", applyCoupon);
+
+
+// APPLY WHEN ENTER IS PRESSED
+couponCodeInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        applyCoupon();
+    }
+});
+
+
+// REMOVE COUPON
+removeCouponBtn.addEventListener("click", () => {
+    appliedCoupon = null;
+
+    couponCodeInput.value = "";
+    appliedCouponBox.hidden = true;
+
+    couponMessage.textContent = "Coupon removed.";
+    couponMessage.className = "";
+
+    renderPriceSummary();
+});
+
+
+// LOAD AVAILABLE COUPONS
+async function loadAvailableCoupons() {
+    if (!availableCouponsContainer) return;
+
+    try {
+        const response = await fetch(
+            "/user/api/coupons/available",
+            {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    Accept: "application/json"
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message || "Unable to load coupons."
+            );
+        }
+
+        availableCouponsContainer.innerHTML = "";
+
+        if (!data.coupons || data.coupons.length === 0) {
+            availableCouponsContainer.textContent =
+                "No available coupons right now.";
+            return;
+        }
+
+        data.coupons.forEach(coupon => {
+            const couponCard = document.createElement("div");
+            couponCard.className = "available-coupon-card";
+
+            const discountText =
+                coupon.discountType === "fixed"
+                    ? `₹${coupon.discountValue} OFF`
+                    : `${coupon.discountValue}% OFF`;
+
+            const minimumText = Number(coupon.minPurchase) > 0
+                ? `Minimum purchase ₹${coupon.minPurchase}`
+                : "No minimum purchase";
+
+            const expiryDate = new Date(
+                coupon.expiryDate
+            ).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+            });
+
+            const description = document.createElement("p");
+            description.textContent = discountText;
+
+            const code = document.createElement("strong");
+            code.textContent = coupon.code;
+
+            const minimum = document.createElement("span");
+            minimum.textContent = minimumText;
+
+            const expiry = document.createElement("span");
+            expiry.textContent = `Valid until ${expiryDate}`;
+
+            const applyButton = document.createElement("button");
+            applyButton.type = "button";
+            applyButton.textContent = "Apply coupon";
+            applyButton.className = "apply-available-coupon";
+
+            applyButton.addEventListener("click", async () => {
+                couponCodeInput.value = coupon.code;
+
+                // Use your existing server-side coupon validation.
+                await applyCoupon();
+            });
+
+            couponCard.append(
+                code,
+                description,
+                minimum,
+                expiry,
+                applyButton
+            );
+
+            availableCouponsContainer.appendChild(couponCard);
+        });
+
+    } catch (error) {
+        console.error("Load coupons error:", error);
+
+        availableCouponsContainer.textContent =
+            "Unable to load available coupons. Please try again.";
+    }
+}
 
     // =====================================
     // SAVED ADDRESSES
@@ -628,9 +864,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     "/user/api/orders/cod",
                     {
                         method: "POST",
-                        body: JSON.stringify({
+                      body: JSON.stringify({
                             shippingAddress,
-                            paymentMethod: "COD"
+                            paymentMethod: "COD",
+                            couponCode: appliedCoupon
+                            ? appliedCoupon.code
+                            : null
                         })
                     }
                 );
@@ -653,7 +892,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     "/user/api/orders/razorpay",
                     {
                         method: "POST",
-                        body: JSON.stringify({ shippingAddress })
+                        body: JSON.stringify({
+                            shippingAddress,
+                            couponCode: appliedCoupon
+                            ? appliedCoupon.code
+                            : null
+                        })
                     }
                 );
 
@@ -672,7 +916,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-
+    // INITIAL PAGE LOAD
     loadSavedAddresses();
     loadCheckoutCart();
+    loadAvailableCoupons();
 });

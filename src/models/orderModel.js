@@ -103,6 +103,26 @@ const orderSchema = new mongoose.Schema(
             min: 0
         },
 
+    coupon: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "coupon",
+    default: null
+    },
+
+    couponCode: {
+    type: String,
+    default: null,
+    trim: true,
+    uppercase: true
+    },
+
+    couponDiscount: {
+    type: Number,
+    default: 0,
+    min: 0
+    },
+
+
         paymentMethod: {
             type: String,
             enum: ["COD", "RAZORPAY"],
@@ -162,6 +182,14 @@ const orderSchema = new mongoose.Schema(
             type: String,
             default: null
         },
+        paymentExpiresAt: {
+        type: Date,
+        default: null
+},
+couponUsageReleased: {
+    type: Boolean,
+    default: false
+},
     cancellationStatus: {
     type: String,
     enum: ["NONE", "PROCESSING", "COMPLETED", "FAILED"],

@@ -5,6 +5,7 @@ const adminController = require("../controllers/adminController");
 const bookController = require("../controllers/bookController");
 const adminOrderController = require("../controllers/adminOrderController");
 const adminAnalyticsController = require("../controllers/adminAnalyticsController")
+const couponController = require("../controllers/couponController");
 
 const noCache = require("../middleware/noCache");
 
@@ -50,9 +51,16 @@ router.get("/overview",adminAuth,
         res.render("admin/overview");
     }
 );
-
 router.get("/api/analytics",adminAuth,adminAnalyticsController.getAnalytics);
-
 router.post("/logout", noCache, adminController.postLogout);
+
+// COUPON MANAGEMENT
+
+router.get( "/coupons",adminAuth,couponController.getCouponsPage);
+router.get("/coupons/api",adminAuth,couponController.getCoupons);
+router.post("/coupons/api",adminAuth,couponController.createCoupon);
+router.put("/coupons/api/:id",adminAuth,couponController.updateCoupon);
+router.patch("/coupons/api/:id/status",adminAuth,couponController.toggleCouponStatus);
+router.delete("/coupons/api/:id",adminAuth,couponController.deleteCoupon);
 
 module.exports = router;
