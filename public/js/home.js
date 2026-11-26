@@ -3,9 +3,7 @@
 (() => {
     const PLACEHOLDER_IMAGE = "/images/book-placeholder.png";
 
-    // =====================================
     // HELPERS
-    // =====================================
 
     function formatPrice(value) {
         return "₹" + Number(value || 0).toLocaleString("en-IN");
@@ -33,9 +31,8 @@
         toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
     }
 
-    // =====================================
+
     // CART BADGE
-    // =====================================
 
     function findCartBadges() {
         const badges = new Set(
@@ -90,9 +87,7 @@
         }
     }
 
-    // =====================================
     // ADD TO CART
-    // =====================================
 
     async function addToCart(bookId, button) {
         const originalLabel = button.textContent;
@@ -175,9 +170,7 @@
         }
     }
 
-    // =====================================
     // NEW ARRIVALS
-    // =====================================
 
     function createBookCard(book, index) {
         const soldOut = Number(book.stock) <= 0;
@@ -303,9 +296,7 @@
         }
     }
 
-    // =====================================
     // SCROLL REVEAL
-    // =====================================
 
     function initReveal() {
         if (!("IntersectionObserver" in window)) return;
@@ -332,9 +323,7 @@
         });
     }
 
-    // =====================================
     // INIT
-    // =====================================
 
     document.addEventListener("DOMContentLoaded", () => {
         initReveal();

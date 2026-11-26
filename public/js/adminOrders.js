@@ -197,9 +197,7 @@ async function sendRequest(url, options = {}) {
     return data;
 }
 
-// --------------------
 // LOAD ALL ORDERS
-// --------------------
 
 async function loadOrders() {
     if (loadingOrders) {
@@ -250,9 +248,7 @@ async function loadOrders() {
     }
 }
 
-// --------------------
 // UPDATE SUMMARY CARDS
-// --------------------
 
 function updateStatistics() {
     totalOrders.textContent = allOrders.length;
@@ -270,9 +266,7 @@ function updateStatistics() {
     ).length;
 }
 
-// --------------------
 // SEARCH AND FILTER
-// --------------------
 
 function getFilteredOrders() {
     const search = orderSearch.value.trim().toLowerCase();
@@ -297,9 +291,7 @@ function getFilteredOrders() {
     });
 }
 
-// --------------------
 // RENDER ORDERS TABLE
-// --------------------
 
 function renderOrders() {
     const orders = getFilteredOrders();
@@ -376,9 +368,7 @@ orderSearch.addEventListener("input", renderOrders);
 statusFilter.addEventListener("change", renderOrders);
 refreshOrdersBtn.addEventListener("click", loadOrders);
 
-// --------------------
 // MODAL OPEN / CLOSE
-// --------------------
 
 function openModal() {
     orderDetails.hidden = false;
@@ -410,9 +400,7 @@ document.addEventListener("keydown", event => {
     }
 });
 
-// --------------------
 // LOAD ONE ORDER
-// --------------------
 
 async function loadOrderDetails(id, firstOpen = true) {
     clearMessage();
@@ -457,9 +445,7 @@ ordersBody.addEventListener("click", event => {
     loadOrderDetails(button.dataset.id);
 });
 
-// --------------------
 // RENDER ORDER DETAILS
-// --------------------
 
 // Adjust these field names if your Book schema uses different ones
 function itemImage(item) {
@@ -629,9 +615,7 @@ function renderOrderDetails(order) {
         : "Update Status";
 }
 
-// --------------------
 // UPDATE ORDER STATUS
-// --------------------
 
 updateStatusBtn.addEventListener("click", async () => {
     if (!selectedOrderId || updatingStatus) {

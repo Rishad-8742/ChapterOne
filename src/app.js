@@ -10,15 +10,7 @@ const adminRoutes = require("./routes/adminRoutes");
 require("./config/passport");
 
 const app = express();
-app.use((req, res, next) => {
-    if (req.originalUrl.includes("/cancel")) {
-        console.log("🔥 GLOBAL REQUEST LOGGER 🔥");
-        console.log("URL:", req.originalUrl);
-        console.log("METHOD:", req.method);
-    }
 
-    next();
-});
 // Middleware
 app.use(cookieParser());
 

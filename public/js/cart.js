@@ -1,8 +1,6 @@
 "use strict";
 
-// =====================================
 // DOM ELEMENTS
-// =====================================
 
 const cartItems = document.getElementById("cartItems");
 const cartSubtitle = document.getElementById("cartSubtitle");
@@ -26,9 +24,7 @@ let requestInProgress = false;
 let messageTimer = null;
 
 
-// =====================================
 // ICONS (static markup only)
-// =====================================
 
 const ICONS = {
     trash:
@@ -41,9 +37,7 @@ const ICONS = {
 };
 
 
-// =====================================
 // FORMAT PRICE
-// =====================================
 
 function formatPrice(price) {
     return new Intl.NumberFormat("en-IN", {
@@ -52,10 +46,7 @@ function formatPrice(price) {
     }).format(price);
 }
 
-
-// =====================================
 // FETCH HELPER
-// =====================================
 
 async function sendRequest(url, options = {}) {
     const response = await fetch(url, {
@@ -93,10 +84,8 @@ async function sendRequest(url, options = {}) {
 }
 
 
-// =====================================
 // DISPLAY MESSAGE
 // type: "success" | "error"
-// =====================================
 
 function showMessage(message, type = "success") {
     clearTimeout(messageTimer);
@@ -113,9 +102,7 @@ function showMessage(message, type = "success") {
 }
 
 
-// =====================================
 // LOAD CART FROM SERVER
-// =====================================
 
 async function loadCart() {
     try {
@@ -139,9 +126,7 @@ async function loadCart() {
 }
 
 
-// =====================================
 // RENDER HELPERS
-// =====================================
 
 function renderEmptyCart() {
     const emptyCart = document.createElement("div");
@@ -265,9 +250,7 @@ function renderCartItem(book) {
 }
 
 
-// =====================================
 // RENDER CART
-// =====================================
 
 function renderCart(data) {
     cartData = data;
@@ -306,10 +289,7 @@ function renderCart(data) {
     cartItems.replaceChildren(fragment);
 }
 
-
-// =====================================
 // INCREASE, DECREASE, REMOVE
-// =====================================
 
 cartItems.addEventListener("click", async function (event) {
     const button = event.target.closest("button[data-action]");
@@ -389,9 +369,7 @@ cartItems.addEventListener("click", async function (event) {
 });
 
 
-// =====================================
 // PROCEED TO CHECKOUT
-// =====================================
 
 checkoutBtn.addEventListener("click", function () {
     if (requestInProgress || cartData.items.length === 0) {
@@ -401,9 +379,6 @@ checkoutBtn.addEventListener("click", function () {
     window.location.href = "/user/checkout";
 });
 
-
-// =====================================
 // INITIALIZE CART
-// =====================================
 
 loadCart();

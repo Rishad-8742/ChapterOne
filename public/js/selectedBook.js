@@ -59,9 +59,7 @@ async function addBookToCart(bookId, quantity) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // =====================================
     // DOM ELEMENTS
-    // =====================================
 
     const bookId = document.body.dataset.bookId;
 
@@ -101,9 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let messageTimer = null;
 
 
-    // =====================================
     // MESSAGE
-    // =====================================
 
     function showMessage(text, isError = false) {
         if (!message) return;
@@ -122,9 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // =====================================
     // COVER GALLERY
-    // =====================================
 
     function showCover(which) {
         const src = which === "back"
@@ -177,11 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-
-    // =====================================
     // STOCK
-    // =====================================
-
     function renderStock(stock) {
         if (!stockNote) return;
 
@@ -200,9 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // =====================================
     // DESCRIPTION + SPECS
-    // =====================================
 
     function renderDescription(text) {
         bookDescription.textContent = text;
@@ -257,10 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
         bookSpecs.hidden = rows.length === 0;
     }
 
-
-    // =====================================
     // QUANTITY + ADD BUTTON STATE
-    // =====================================
 
     function updateQuantity() {
         if (!quantityDisplay || !decreaseBtn || !increaseBtn) {
@@ -285,10 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
         addToCartLabel.textContent = stock <= 0 ? "Out of Stock" : "Add to Cart";
     }
 
-
-    // =====================================
     // LOAD BOOK DETAILS
-    // =====================================
 
     async function loadBook() {
         try {
@@ -364,9 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // =====================================
     // QUANTITY BUTTONS
-    // =====================================
 
     decreaseBtn.addEventListener("click", () => {
         if (quantity > 1) {
@@ -385,9 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // =====================================
     // ADD TO CART
-    // =====================================
 
     addToCartBtn.addEventListener("click", async () => {
         if (!selectedBook) return;
@@ -419,10 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-
-    // =====================================
     // IMAGE ZOOM (mouse devices only)
-    // =====================================
 
     if (
         imageCard &&
@@ -452,9 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// =====================================
 // RELATED BOOKS
-// =====================================
 
 async function loadRelatedBooks(currentBook) {
     const container =

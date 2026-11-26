@@ -150,9 +150,7 @@ if (
     }
 
 
-    // =====================================
     // PLACE ORDER BUTTON
-    // =====================================
 
     function getPaymentMethod() {
         return checkoutForm.querySelector(
@@ -675,10 +673,7 @@ async function loadAvailableCoupons() {
         }
     });
 
-
-    // =====================================
     // RAZORPAY
-    // =====================================
 
     // All user-facing error text is shown once, by the submit handler,
     // so every rejection here only needs a clear message.
@@ -792,10 +787,7 @@ async function loadAvailableCoupons() {
         });
     }
 
-
-    // =====================================
     // PLACE ORDER
-    // =====================================
 
     checkoutForm.addEventListener("submit", async event => {
         event.preventDefault();

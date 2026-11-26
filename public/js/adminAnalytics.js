@@ -42,10 +42,7 @@ const STATUS_COLORS = {
     canceled: "#ef4444"
 };
 
-
-// --------------------
 // HELPERS
-// --------------------
 
 function sumOf(list, key) {
     return list.reduce(
@@ -114,9 +111,7 @@ function normalize(analytics) {
 }
 
 
-// --------------------
 // SUMMARY CARDS
-// --------------------
 
 function updateKpis(analytics) {
     const { revenueTimeline, salesByGenre, topBooks, orderStatuses } = analytics;
@@ -176,9 +171,7 @@ function updateKpis(analytics) {
 }
 
 
-// --------------------
 // CHART SETUP
-// --------------------
 
 function applyChartDefaults() {
     Chart.defaults.font.family =
@@ -259,10 +252,7 @@ function buildStatusData(orderStatuses) {
     };
 }
 
-
-// --------------------
 // CREATE CHARTS (first load)
-// --------------------
 
 function createCharts(analytics) {
     applyChartDefaults();
@@ -460,10 +450,7 @@ function createCharts(analytics) {
     );
 }
 
-
-// --------------------
 // UPDATE CHARTS (refresh)
-// --------------------
 
 function updateCharts(analytics) {
     const revenue = charts.revenue;
@@ -501,9 +488,7 @@ function updateEmptyStates(analytics) {
 }
 
 
-// --------------------
 // LOAD ANALYTICS
-// --------------------
 
 function showMessage(text, isError = false) {
     analyticsMessage.textContent = text;
