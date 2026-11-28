@@ -288,6 +288,7 @@ const deleteCoupon = async (req, res) => {
             });
         }
 
+        //for better detailing
         if (coupon.usedCount > 0) {
             return res.status(400).json({
                 success: false,

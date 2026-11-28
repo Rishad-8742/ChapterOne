@@ -31,6 +31,10 @@ app.use("/user", userRoutes);
 app.use("/auth", googleRoutes);
 app.use("/admin", adminRoutes);
 
+// Redirect root URL to login
+app.get("/", (req, res) => {
+    res.redirect("/user/login");
+});
 
 app.use((req, res) => {
     res.status(404).send("404 page not found");

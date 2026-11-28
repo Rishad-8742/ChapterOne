@@ -51,19 +51,7 @@ router.get("/api/coupons/available",noCache,userAuth,checkBlocked,couponControll
 // ORDERS
 router.get("/orders", noCache, userAuth, checkBlocked, userController.getOrdersPage);
 router.get("/api/orders", noCache, userAuth, checkBlocked, orderController.getMyOrders);
-router.patch(
-    "/api/orders/:orderId/cancel",
-    (req, res, next) => {
-       console.log("🔥 CANCEL ROUTE HIT 🔥");
-console.log("Order ID:", req.params.orderId);
-console.log("User ID:", req.user?._id);
-        next();
-    },
-    noCache,
-    userAuth,
-    checkBlocked,
-    orderController.cancelOrder
-);
+router.patch("/api/orders/:orderId/cancel",noCache,userAuth,checkBlocked,orderController.cancelOrder);
 
 
 // ACCOUNT
